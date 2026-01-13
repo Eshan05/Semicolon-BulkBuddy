@@ -332,6 +332,253 @@ export const verificationDocument = sqliteTable(
   (table) => [index("verification_document_company_idx").on(table.companyId)],
 );
 
+export const pool = sqliteTable(
+  "pool",
+  {
+    id: text("id").primaryKey(),
+    creatorId: text("creator_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    material: text("material").notNull(),
+    specification: text("specification"),
+    unit: text("unit").default("kg").notNull(),
+    targetQuantity: integer("target_quantity").notNull(),
+    currentQuantity: integer("current_quantity").default(0).notNull(),
+    minFillPercent: integer("min_fill_percent").default(60).notNull(),
+    status: text("status").default("filling").notNull(),
+    retailPriceCents: integer("retail_price_cents").notNull(),
+    currency: text("currency").default("USD").notNull(),
+    locationCity: text("location_city"),
+    locationState: text("location_state"),
+    locationCountry: text("location_country"),
+    expiresAt: integer("expires_at", { mode: "timestamp_ms" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("pool_creator_idx").on(table.creatorId),
+    index("pool_status_idx").on(table.status),
+  ],
+);
+
+export const poolPriceTier = sqliteTable(
+  "pool_price_tier",
+  {
+    id: text("id").primaryKey(),
+    poolId: text("pool_id")
+      .notNull()
+      .references(() => pool.id, { onDelete: "cascade" }),
+    minPercent: integer("min_percent").notNull(),
+    pricePerUnitCents: integer("price_per_unit_cents").notNull(),
+    currency: text("currency").default("USD").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [index("pool_price_tier_pool_idx").on(table.poolId)],
+);
+
+export const poolParticipant = sqliteTable(
+  "pool_participant",
+  {
+    id: text("id").primaryKey(),
+    poolId: text("pool_id")
+      .notNull()
+      .references(() => pool.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    participantType: text("participant_type").default("buyer").notNull(),
+    quantity: integer("quantity").notNull(),
+    commitStatus: text("commit_status").default("none").notNull(),
+    committedAt: integer("committed_at", { mode: "timestamp_ms" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("pool_participant_pool_idx").on(table.poolId),
+    index("pool_participant_user_idx").on(table.userId),
+    uniqueIndex("pool_participant_unique").on(table.poolId, table.userId),
+  ],
+);
+
+export const poolActivity = sqliteTable(
+  "pool_activity",
+  {
+    id: text("id").primaryKey(),
+    poolId: text("pool_id")
+      .notNull()
+      .references(() => pool.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    message: text("message").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [index("pool_activity_pool_idx").on(table.poolId)],
+);
+
+export const poolMessage = sqliteTable(
+  "pool_message",
+  {
+    id: text("id").primaryKey(),
+    poolId: text("pool_id")
+      .notNull()
+      .references(() => pool.id, { onDelete: "cascade" }),
+    senderId: text("sender_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    senderRole: text("sender_role").default("buyer").notNull(),
+    displayName: text("display_name"),
+    isAnonymous: integer("is_anonymous", { mode: "boolean" }).default(false).notNull(),
+    message: text("message").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [
+    index("pool_message_pool_idx").on(table.poolId),
+    index("pool_message_sender_idx").on(table.senderId),
+  ],
+);
+
+export const messageThread = sqliteTable(
+  "message_thread",
+  {
+    id: text("id").primaryKey(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    lastMessageAt: integer("last_message_at", { mode: "timestamp_ms" }),
+  },
+  (table) => [index("message_thread_lastMessageAt_idx").on(table.lastMessageAt)],
+);
+
+export const messageThreadParticipant = sqliteTable(
+  "message_thread_participant",
+  {
+    id: text("id").primaryKey(),
+    threadId: text("thread_id")
+      .notNull()
+      .references(() => messageThread.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    lastReadAt: integer("last_read_at", { mode: "timestamp_ms" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [
+    index("message_thread_participant_thread_idx").on(table.threadId),
+    index("message_thread_participant_user_idx").on(table.userId),
+    uniqueIndex("message_thread_participant_unique").on(table.threadId, table.userId),
+  ],
+);
+
+export const directMessage = sqliteTable(
+  "direct_message",
+  {
+    id: text("id").primaryKey(),
+    threadId: text("thread_id")
+      .notNull()
+      .references(() => messageThread.id, { onDelete: "cascade" }),
+    senderId: text("sender_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [
+    index("direct_message_thread_idx").on(table.threadId),
+    index("direct_message_sender_idx").on(table.senderId),
+  ],
+);
+
+export const notification = sqliteTable(
+  "notification",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    title: text("title").notNull(),
+    body: text("body"),
+    href: text("href"),
+    readAt: integer("read_at", { mode: "timestamp_ms" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [
+    index("notification_user_idx").on(table.userId),
+    index("notification_readAt_idx").on(table.readAt),
+  ],
+);
+
+export const auditLog = sqliteTable(
+  "audit_log",
+  {
+    id: text("id").primaryKey(),
+    actorId: text("actor_id").references(() => user.id, { onDelete: "set null" }),
+    action: text("action").notNull(),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id"),
+    metadata: text("metadata"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [
+    index("audit_log_actor_idx").on(table.actorId),
+    index("audit_log_entity_idx").on(table.entityType, table.entityId),
+    index("audit_log_createdAt_idx").on(table.createdAt),
+  ],
+);
+
+export const poolSupplierBid = sqliteTable(
+  "pool_supplier_bid",
+  {
+    id: text("id").primaryKey(),
+    poolId: text("pool_id")
+      .notNull()
+      .references(() => pool.id, { onDelete: "cascade" }),
+    supplierId: text("supplier_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    offeredPriceCents: integer("offered_price_cents").notNull(),
+    currency: text("currency").default("USD").notNull(),
+    maxQuantity: integer("max_quantity"),
+    notes: text("notes"),
+    status: text("status").default("open").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [
+    index("pool_supplier_bid_pool_idx").on(table.poolId),
+    index("pool_supplier_bid_supplier_idx").on(table.supplierId),
+  ],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
@@ -340,6 +587,12 @@ export const userRelations = relations(user, ({ many }) => ({
   twoFactors: many(twoFactor),
   passkeys: many(passkey),
   companyProfiles: many(companyProfile),
+  poolsCreated: many(pool),
+  poolParticipants: many(poolParticipant),
+  threadParticipants: many(messageThreadParticipant),
+  directMessagesSent: many(directMessage),
+  notifications: many(notification),
+  auditLogs: many(auditLog),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -442,3 +695,106 @@ export const verificationDocumentRelations = relations(
     }),
   }),
 );
+
+export const poolRelations = relations(pool, ({ one, many }) => ({
+  creator: one(user, {
+    fields: [pool.creatorId],
+    references: [user.id],
+  }),
+  priceTiers: many(poolPriceTier),
+  participants: many(poolParticipant),
+  activities: many(poolActivity),
+  messages: many(poolMessage),
+  supplierBids: many(poolSupplierBid),
+}));
+
+export const poolPriceTierRelations = relations(poolPriceTier, ({ one }) => ({
+  pool: one(pool, {
+    fields: [poolPriceTier.poolId],
+    references: [pool.id],
+  }),
+}));
+
+export const poolParticipantRelations = relations(poolParticipant, ({ one }) => ({
+  pool: one(pool, {
+    fields: [poolParticipant.poolId],
+    references: [pool.id],
+  }),
+  user: one(user, {
+    fields: [poolParticipant.userId],
+    references: [user.id],
+  }),
+}));
+
+export const poolActivityRelations = relations(poolActivity, ({ one }) => ({
+  pool: one(pool, {
+    fields: [poolActivity.poolId],
+    references: [pool.id],
+  }),
+}));
+
+export const poolMessageRelations = relations(poolMessage, ({ one }) => ({
+  pool: one(pool, {
+    fields: [poolMessage.poolId],
+    references: [pool.id],
+  }),
+  sender: one(user, {
+    fields: [poolMessage.senderId],
+    references: [user.id],
+  }),
+}));
+
+export const poolSupplierBidRelations = relations(poolSupplierBid, ({ one }) => ({
+  pool: one(pool, {
+    fields: [poolSupplierBid.poolId],
+    references: [pool.id],
+  }),
+  supplier: one(user, {
+    fields: [poolSupplierBid.supplierId],
+    references: [user.id],
+  }),
+}));
+
+export const messageThreadRelations = relations(messageThread, ({ many }) => ({
+  participants: many(messageThreadParticipant),
+  messages: many(directMessage),
+}));
+
+export const messageThreadParticipantRelations = relations(
+  messageThreadParticipant,
+  ({ one }) => ({
+    thread: one(messageThread, {
+      fields: [messageThreadParticipant.threadId],
+      references: [messageThread.id],
+    }),
+    user: one(user, {
+      fields: [messageThreadParticipant.userId],
+      references: [user.id],
+    }),
+  }),
+);
+
+export const directMessageRelations = relations(directMessage, ({ one }) => ({
+  thread: one(messageThread, {
+    fields: [directMessage.threadId],
+    references: [messageThread.id],
+  }),
+  sender: one(user, {
+    fields: [directMessage.senderId],
+    references: [user.id],
+  }),
+}));
+
+export const notificationRelations = relations(notification, ({ one }) => ({
+  user: one(user, {
+    fields: [notification.userId],
+    references: [user.id],
+  }),
+}));
+
+export const auditLogRelations = relations(auditLog, ({ one }) => ({
+  actor: one(user, {
+    fields: [auditLog.actorId],
+    references: [user.id],
+  }),
+}));
