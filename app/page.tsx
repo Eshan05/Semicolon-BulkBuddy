@@ -5,6 +5,14 @@ import { BentoGridBlock } from "@/components/sections/landing-bento";
 import { DashboardPageLanding } from "@/components/sections/landing-dashboard";
 import { FAQAccordionBlock } from "@/components/sections/landing-faq";
 import { GlowyWavesHero } from "@/components/sections/landing-hero";
+import dynamic from "next/dynamic";
+
+const LandingAIAssistant = dynamic(
+  () => import("@/components/sections/landing-ai-assistant").then((mod) => mod.LandingAIAssistant),
+  {
+    loading: () => null,
+  },
+);
 
 export default function Home() {
   return (
@@ -22,6 +30,8 @@ export default function Home() {
         <section id="features" className="py-12 md:py-20 bg-muted/30">
           <BentoGridBlock />
         </section>
+
+        <LandingAIAssistant />
 
         <section id="contact" className="py-12 md:py-20">
           <ContactFormSection />

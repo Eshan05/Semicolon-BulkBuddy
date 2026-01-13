@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { submitOnboarding } from "@/lib/onboarding";
 import { cn } from "@/lib/utils";
 
@@ -141,10 +142,24 @@ export function OnboardingForm({ initialStatus, initialCompanyType, initialProfi
     };
   });
   const [isSubmitting, startTransition] = useTransition();
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const initialType = initialProfile?.companyType || initialCompanyType || "";
+    return initialType ? "company" : "role";
+  });
 
   const isLocked = status === "pending" || status === "approved";
   const showBuyerFields = formState.companyType === "buyer";
   const showSupplierFields = formState.companyType === "supplier";
+  const canMoveForward = !!formState.companyType;
+
+  const tabs = useMemo(() => {
+    return [
+      { value: "role", label: "Role" },
+      { value: "company", label: "Company" },
+      { value: "profile", label: "Profile" },
+      { value: "documents", label: "Documents" },
+    ];
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -169,6 +184,12 @@ export function OnboardingForm({ initialStatus, initialCompanyType, initialProfi
     if (isLocked) return;
     window.localStorage.setItem(storageKey, JSON.stringify(formState));
   }, [formState, isLocked]);
+
+  useEffect(() => {
+    if (!formState.companyType) {
+      setActiveTab("role");
+    }
+  }, [formState.companyType]);
 
   const missingRequired = useMemo(() => {
     return (
@@ -356,6 +377,73 @@ export function OnboardingForm({ initialStatus, initialCompanyType, initialProfi
   const statusBadge =
     status === "approved" ? "default" : status === "pending" ? "secondary" : status === "rejected" ? "destructive" : "outline";
 
+  const handleNext = () => {
+    const index = tabs.findIndex((tab) => tab.value === activeTab);
+    if (index < 0 || index === tabs.length - 1) return;
+    if (!canMoveForward && tabs[index + 1]?.value !== "role") return;
+    setActiveTab(tabs[index + 1].value);
+  };
+
+  const handleBack = () => {
+    const index = tabs.findIndex((tab) => tab.value === activeTab);
+    if (index <= 0) return;
+    setActiveTab(tabs[index - 1].value);
+  };
+
+  const fillSample = (role: "buyer" | "supplier") => {
+    setFormState((prev) => ({
+      ...prev,
+      companyType: role,
+      companyName: role === "buyer" ? "MetroBuild Supplies" : "Atlas Industrial Metals",
+      legalName: role === "buyer" ? "MetroBuild Supplies Ltd." : "Atlas Industrial Metals PLC",
+      registrationNumber: "RC-40219",
+      taxId: "VAT-991200",
+      website: "https://bulkbuddy.dev",
+      yearFounded: 2014,
+      employeeCount: "25-50",
+      annualRevenueBand: "$250k - $1M",
+      addressLine1: "12 Industrial Estate Road",
+      addressLine2: "Block C",
+      city: "Lagos",
+      state: "Lagos",
+      country: "Nigeria",
+      postalCode: "100001",
+      contactName: "Amina Yusuf",
+      contactRole: "Operations Lead",
+      contactEmail: "ops@bulkbuddy.dev",
+      contactPhone: "+234 803 555 1200",
+      alternatePhone: "+234 803 555 1201",
+      buyerDetails: role === "buyer"
+        ? {
+          procurementCategories: "Steel, packaging, industrial plastics",
+          avgMonthlySpend: "$30k - $60k",
+          typicalOrderVolume: "800kg - 2 tons",
+          deliveryPreferences: "Doorstep delivery, weekly",
+          paymentTerms: "Net 15, bank transfer",
+          storageCapacity: "300 sqm warehouse",
+          complianceNeeds: "ISO 9001",
+          preferredSuppliers: "Within 150km",
+          notes: "Open to pool-based discount tiers.",
+        }
+        : prev.buyerDetails,
+      supplierDetails: role === "supplier"
+        ? {
+          productCategories: "Steel coils, aluminum sheets",
+          productionCapacity: "8 tons / week",
+          minOrderQuantity: "400kg",
+          leadTimeDays: 6,
+          certifications: "ISO 9001, ISO 14001",
+          warehouseLocations: "Lagos, Abuja",
+          qualityAssurance: "In-house QC + SGS audits",
+          logisticsCapabilities: "Partner carriers + in-house fleet",
+          paymentTerms: "Net 30",
+          serviceRegions: "West Africa",
+          notes: "Can scale for large pooled orders.",
+        }
+        : prev.supplierDetails,
+    }));
+  };
+
   const StatusIcon = () => {
     switch (status) {
       case "approved":
@@ -393,762 +481,844 @@ export function OnboardingForm({ initialStatus, initialCompanyType, initialProfi
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <LuBuilding2 className="h-5 w-5" />
-            Company details
-          </CardTitle>
-          <CardDescription>Ensure all details match your official records.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuBriefcase className="h-4 w-4 text-muted-foreground" />
-                Company type
-              </label>
-              <Select
-                value={formState.companyType}
-                onValueChange={(value) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    companyType: value as "buyer" | "supplier",
-                  }))
-                }
-                disabled={isLocked}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue>
-                    {formState.companyType ? (formState.companyType === "buyer" ? "Buyer (SME)" : "Supplier") : "Select role"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="buyer">Buyer (SME)</SelectItem>
-                  <SelectItem value="supplier">Supplier</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuBuilding className="h-4 w-4 text-muted-foreground" />
-                Company name
-              </label>
-              <Input
-                value={formState.companyName}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    companyName: event.target.value,
-                  }))
-                }
-                placeholder="BulkBuddy Manufacturing"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuIdCard className="h-4 w-4 text-muted-foreground" />
-                Legal entity name
-              </label>
-              <Input
-                value={formState.legalName}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    legalName: event.target.value,
-                  }))
-                }
-                placeholder="BulkBuddy Manufacturing Pvt Ltd"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuFileText className="h-4 w-4 text-muted-foreground" />
-                Registration number
-              </label>
-              <Input
-                value={formState.registrationNumber || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    registrationNumber: event.target.value,
-                  }))
-                }
-                placeholder="CIN / CAC / RC"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuDollarSign className="h-4 w-4 text-muted-foreground" />
-                Tax ID
-              </label>
-              <Input
-                value={formState.taxId || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    taxId: event.target.value,
-                  }))
-                }
-                placeholder="VAT / TIN / GST"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuGlobe className="h-4 w-4 text-muted-foreground" />
-                Website
-              </label>
-              <Input
-                value={formState.website || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    website: event.target.value,
-                  }))
-                }
-                placeholder="https://yourcompany.com"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuCalendar className="h-4 w-4 text-muted-foreground" />
-                Year founded
-              </label>
-              <Input
-                type="number"
-                value={formState.yearFounded ?? ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    yearFounded: event.target.value ? Number(event.target.value) : undefined,
-                  }))
-                }
-                placeholder="2014"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuUsers className="h-4 w-4 text-muted-foreground" />
-                Employee count
-              </label>
-              <Input
-                value={formState.employeeCount || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    employeeCount: event.target.value,
-                  }))
-                }
-                placeholder="10-50"
-                disabled={isLocked}
-              />
-            </div>
-          </div>
-
-          <Separator />
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuMapPin className="h-4 w-4 text-muted-foreground" />
-                Address line 1
-              </label>
-              <Input
-                value={formState.addressLine1}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    addressLine1: event.target.value,
-                  }))
-                }
-                placeholder="Street address"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuMapPin className="h-4 w-4 text-muted-foreground" />
-                Address line 2
-              </label>
-              <Input
-                value={formState.addressLine2 || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    addressLine2: event.target.value,
-                  }))
-                }
-                placeholder="Suite, unit, building"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuMapPin className="h-4 w-4 text-muted-foreground" />
-                City
-              </label>
-              <Input
-                value={formState.city}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    city: event.target.value,
-                  }))
-                }
-                placeholder="Lagos"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuMapPin className="h-4 w-4 text-muted-foreground" />
-                State / Province
-              </label>
-              <Input
-                value={formState.state || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    state: event.target.value,
-                  }))
-                }
-                placeholder="Lagos"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuMap className="h-4 w-4 text-muted-foreground" />
-                Country
-              </label>
-              <Input
-                value={formState.country}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    country: event.target.value,
-                  }))
-                }
-                placeholder="Nigeria"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuMapPin className="h-4 w-4 text-muted-foreground" />
-                Postal code
-              </label>
-              <Input
-                value={formState.postalCode || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    postalCode: event.target.value,
-                  }))
-                }
-                placeholder="100001"
-                disabled={isLocked}
-              />
-            </div>
-          </div>
-
-          <Separator />
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuUser className="h-4 w-4 text-muted-foreground" />
-                Primary contact name
-              </label>
-              <Input
-                value={formState.contactName}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    contactName: event.target.value,
-                  }))
-                }
-                placeholder="Jane Doe"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuRole className="h-4 w-4 text-muted-foreground" />
-                Role / title
-              </label>
-              <Input
-                value={formState.contactRole || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    contactRole: event.target.value,
-                  }))
-                }
-                placeholder="Procurement Lead"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuMail className="h-4 w-4 text-muted-foreground" />
-                Contact email
-              </label>
-              <Input
-                type="email"
-                value={formState.contactEmail}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    contactEmail: event.target.value,
-                  }))
-                }
-                placeholder="name@company.com"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuPhoneCall className="h-4 w-4 text-muted-foreground" />
-                Contact phone
-              </label>
-              <Input
-                value={formState.contactPhone}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    contactPhone: event.target.value,
-                  }))
-                }
-                placeholder="+234 800 000 0000"
-                disabled={isLocked}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {showBuyerFields && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <LuBriefcase className="h-5 w-5" />
-              Buyer profile
-            </CardTitle>
-            <CardDescription>Help suppliers understand your procurement needs.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuPackage className="h-4 w-4 text-muted-foreground" />
-                Procurement categories
-              </label>
-              <Input
-                value={formState.buyerDetails?.procurementCategories || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    buyerDetails: {
-                      ...prev.buyerDetails,
-                      procurementCategories: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="Steel, plastics, packaging"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuDollarSign className="h-4 w-4 text-muted-foreground" />
-                Average monthly spend
-              </label>
-              <Input
-                value={formState.buyerDetails?.avgMonthlySpend || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    buyerDetails: {
-                      ...prev.buyerDetails,
-                      avgMonthlySpend: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="$25k - $50k"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuPackage className="h-4 w-4 text-muted-foreground" />
-                Typical order volume
-              </label>
-              <Input
-                value={formState.buyerDetails?.typicalOrderVolume || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    buyerDetails: {
-                      ...prev.buyerDetails,
-                      typicalOrderVolume: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="500kg - 2 tons"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuTruck className="h-4 w-4 text-muted-foreground" />
-                Delivery preferences
-              </label>
-              <Input
-                value={formState.buyerDetails?.deliveryPreferences || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    buyerDetails: {
-                      ...prev.buyerDetails,
-                      deliveryPreferences: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="Doorstep delivery, weekly"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuCreditCard className="h-4 w-4 text-muted-foreground" />
-                Payment terms
-              </label>
-              <Input
-                value={formState.buyerDetails?.paymentTerms || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    buyerDetails: {
-                      ...prev.buyerDetails,
-                      paymentTerms: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="Net 15, bank transfer"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuWarehouse className="h-4 w-4 text-muted-foreground" />
-                Storage capacity
-              </label>
-              <Input
-                value={formState.buyerDetails?.storageCapacity || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    buyerDetails: {
-                      ...prev.buyerDetails,
-                      storageCapacity: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="250 sqm warehouse"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuShield className="h-4 w-4 text-muted-foreground" />
-                Compliance needs
-              </label>
-              <Input
-                value={formState.buyerDetails?.complianceNeeds || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    buyerDetails: {
-                      ...prev.buyerDetails,
-                      complianceNeeds: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="ISO 9001, REACH"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuBuilding className="h-4 w-4 text-muted-foreground" />
-                Preferred suppliers
-              </label>
-              <Input
-                value={formState.buyerDetails?.preferredSuppliers || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    buyerDetails: {
-                      ...prev.buyerDetails,
-                      preferredSuppliers: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="Local suppliers, within 150km"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <LuNotebook className="h-4 w-4 text-muted-foreground" />
-                Additional notes
-              </label>
-              <Textarea
-                value={formState.buyerDetails?.notes || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    buyerDetails: {
-                      ...prev.buyerDetails,
-                      notes: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="Share any specific sourcing requirements"
-                disabled={isLocked}
-                className="min-h-30"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {showSupplierFields && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Supplier profile</CardTitle>
-            <CardDescription>Help buyers evaluate your capacity and compliance.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Product categories</label>
-              <Input
-                value={formState.supplierDetails?.productCategories || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    supplierDetails: {
-                      ...prev.supplierDetails,
-                      productCategories: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="Steel coils, HDPE granules"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Production capacity</label>
-              <Input
-                value={formState.supplierDetails?.productionCapacity || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    supplierDetails: {
-                      ...prev.supplierDetails,
-                      productionCapacity: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="5 tons / week"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Minimum order quantity</label>
-              <Input
-                value={formState.supplierDetails?.minOrderQuantity || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    supplierDetails: {
-                      ...prev.supplierDetails,
-                      minOrderQuantity: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="500kg"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Lead time (days)</label>
-              <Input
-                type="number"
-                value={formState.supplierDetails?.leadTimeDays ?? ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    supplierDetails: {
-                      ...prev.supplierDetails,
-                      leadTimeDays: event.target.value ? Number(event.target.value) : undefined,
-                    },
-                  }))
-                }
-                placeholder="7"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Certifications</label>
-              <Input
-                value={formState.supplierDetails?.certifications || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    supplierDetails: {
-                      ...prev.supplierDetails,
-                      certifications: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="ISO 9001, ISO 14001"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Warehouse locations</label>
-              <Input
-                value={formState.supplierDetails?.warehouseLocations || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    supplierDetails: {
-                      ...prev.supplierDetails,
-                      warehouseLocations: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="Lagos, Abuja"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Quality assurance</label>
-              <Input
-                value={formState.supplierDetails?.qualityAssurance || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    supplierDetails: {
-                      ...prev.supplierDetails,
-                      qualityAssurance: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="In-house QC, third-party audits"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Logistics capabilities</label>
-              <Input
-                value={formState.supplierDetails?.logisticsCapabilities || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    supplierDetails: {
-                      ...prev.supplierDetails,
-                      logisticsCapabilities: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="In-house fleet, partner carriers"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Payment terms</label>
-              <Input
-                value={formState.supplierDetails?.paymentTerms || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    supplierDetails: {
-                      ...prev.supplierDetails,
-                      paymentTerms: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="Net 30, LC"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Service regions</label>
-              <Input
-                value={formState.supplierDetails?.serviceRegions || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    supplierDetails: {
-                      ...prev.supplierDetails,
-                      serviceRegions: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="West Africa"
-                disabled={isLocked}
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium">Additional notes</label>
-              <Textarea
-                value={formState.supplierDetails?.notes || ""}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    supplierDetails: {
-                      ...prev.supplierDetails,
-                      notes: event.target.value,
-                    },
-                  }))
-                }
-                placeholder="Share any supply guarantees or differentiators"
-                disabled={isLocked}
-                className="min-h-30"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <LuFileCheck className="h-5 w-5" />
-            Verification documents
-          </CardTitle>
-          <CardDescription>Upload required documents for verification.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          {formState.documents?.map((doc, index) => (
-            <FileUploadField
-              key={doc.docType}
-              docType={doc.docType}
-              fileName={doc.fileName}
-              index={index}
-              disabled={isLocked}
-            />
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full flex-wrap" variant="line">
+          {tabs.map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className={cn(
+                "flex-1 min-w-27.5",
+                !canMoveForward && tab.value !== "role" && "opacity-50"
+              )}
+              disabled={isLocked || (!canMoveForward && tab.value !== "role")}
+            >
+              {tab.label}
+            </TabsTrigger>
           ))}
-        </CardContent>
-      </Card>
+        </TabsList>
+
+        <TabsContent value="role" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <LuBriefcase className="h-5 w-5" />
+                Choose your role
+              </CardTitle>
+              <CardDescription>Select whether you are buying or supplying materials.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <LuBriefcase className="h-4 w-4 text-muted-foreground" />
+                  Company type
+                </label>
+                <Select
+                  value={formState.companyType}
+                  onValueChange={(value) =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      companyType: value as "buyer" | "supplier",
+                    }))
+                  }
+                  disabled={isLocked}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue>
+                      {formState.companyType ? (formState.companyType === "buyer" ? "Buyer (SME)" : "Supplier") : "Select role"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="buyer">Buyer (SME)</SelectItem>
+                    <SelectItem value="supplier">Supplier</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Why we ask</p>
+                <p className="text-sm text-muted-foreground">
+                  Your role helps us tailor the onboarding questions and route you to the right dashboard.
+                </p>
+              </div>
+              {process.env.NODE_ENV === "development" && (
+                <div className="col-span-full flex flex-wrap gap-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => fillSample("buyer")}>
+                    Fill buyer sample
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => fillSample("supplier")}>
+                    Fill supplier sample
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="company" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <LuBuilding2 className="h-5 w-5" />
+                Company details
+              </CardTitle>
+              <CardDescription>Ensure all details match your official records.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuBuilding className="h-4 w-4 text-muted-foreground" />
+                    Company name
+                  </label>
+                  <Input
+                    value={formState.companyName}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        companyName: event.target.value,
+                      }))
+                    }
+                    placeholder="BulkBuddy Manufacturing"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuIdCard className="h-4 w-4 text-muted-foreground" />
+                    Legal entity name
+                  </label>
+                  <Input
+                    value={formState.legalName}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        legalName: event.target.value,
+                      }))
+                    }
+                    placeholder="BulkBuddy Manufacturing Pvt Ltd"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuFileText className="h-4 w-4 text-muted-foreground" />
+                    Registration number
+                  </label>
+                  <Input
+                    value={formState.registrationNumber || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        registrationNumber: event.target.value,
+                      }))
+                    }
+                    placeholder="CIN / CAC / RC"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuDollarSign className="h-4 w-4 text-muted-foreground" />
+                    Tax ID
+                  </label>
+                  <Input
+                    value={formState.taxId || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        taxId: event.target.value,
+                      }))
+                    }
+                    placeholder="VAT / TIN / GST"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuGlobe className="h-4 w-4 text-muted-foreground" />
+                    Website
+                  </label>
+                  <Input
+                    value={formState.website || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        website: event.target.value,
+                      }))
+                    }
+                    placeholder="https://yourcompany.com"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuCalendar className="h-4 w-4 text-muted-foreground" />
+                    Year founded
+                  </label>
+                  <Input
+                    type="number"
+                    value={formState.yearFounded ?? ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        yearFounded: event.target.value ? Number(event.target.value) : undefined,
+                      }))
+                    }
+                    placeholder="2014"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuUsers className="h-4 w-4 text-muted-foreground" />
+                    Employee count
+                  </label>
+                  <Input
+                    value={formState.employeeCount || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        employeeCount: event.target.value,
+                      }))
+                    }
+                    placeholder="10-50"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuAlertCircle className="h-4 w-4 text-muted-foreground" />
+                    Annual revenue band
+                  </label>
+                  <Input
+                    value={formState.annualRevenueBand || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        annualRevenueBand: event.target.value,
+                      }))
+                    }
+                    placeholder="$250k - $1M"
+                    disabled={isLocked}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuMapPin className="h-4 w-4 text-muted-foreground" />
+                    Address line 1
+                  </label>
+                  <Input
+                    value={formState.addressLine1}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        addressLine1: event.target.value,
+                      }))
+                    }
+                    placeholder="Street address"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuMapPin className="h-4 w-4 text-muted-foreground" />
+                    Address line 2
+                  </label>
+                  <Input
+                    value={formState.addressLine2 || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        addressLine2: event.target.value,
+                      }))
+                    }
+                    placeholder="Suite, unit, building"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuMapPin className="h-4 w-4 text-muted-foreground" />
+                    City
+                  </label>
+                  <Input
+                    value={formState.city}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        city: event.target.value,
+                      }))
+                    }
+                    placeholder="Lagos"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuMapPin className="h-4 w-4 text-muted-foreground" />
+                    State / Province
+                  </label>
+                  <Input
+                    value={formState.state || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        state: event.target.value,
+                      }))
+                    }
+                    placeholder="Lagos"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuMap className="h-4 w-4 text-muted-foreground" />
+                    Country
+                  </label>
+                  <Input
+                    value={formState.country}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        country: event.target.value,
+                      }))
+                    }
+                    placeholder="Nigeria"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuMapPin className="h-4 w-4 text-muted-foreground" />
+                    Postal code
+                  </label>
+                  <Input
+                    value={formState.postalCode || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        postalCode: event.target.value,
+                      }))
+                    }
+                    placeholder="100001"
+                    disabled={isLocked}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuUser className="h-4 w-4 text-muted-foreground" />
+                    Primary contact name
+                  </label>
+                  <Input
+                    value={formState.contactName}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        contactName: event.target.value,
+                      }))
+                    }
+                    placeholder="Jane Doe"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuRole className="h-4 w-4 text-muted-foreground" />
+                    Role / title
+                  </label>
+                  <Input
+                    value={formState.contactRole || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        contactRole: event.target.value,
+                      }))
+                    }
+                    placeholder="Procurement Lead"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuMail className="h-4 w-4 text-muted-foreground" />
+                    Contact email
+                  </label>
+                  <Input
+                    type="email"
+                    value={formState.contactEmail}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        contactEmail: event.target.value,
+                      }))
+                    }
+                    placeholder="name@company.com"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuPhoneCall className="h-4 w-4 text-muted-foreground" />
+                    Contact phone
+                  </label>
+                  <Input
+                    value={formState.contactPhone}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        contactPhone: event.target.value,
+                      }))
+                    }
+                    placeholder="+234 800 000 0000"
+                    disabled={isLocked}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="profile" className="mt-4">
+          {!formState.companyType && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Select a role first</CardTitle>
+                <CardDescription>Choose whether you are a buyer or supplier to continue.</CardDescription>
+              </CardHeader>
+            </Card>
+          )}
+          {showBuyerFields && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <LuBriefcase className="h-5 w-5" />
+                  Buyer profile
+                </CardTitle>
+                <CardDescription>Help suppliers understand your procurement needs.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuPackage className="h-4 w-4 text-muted-foreground" />
+                    Procurement categories
+                  </label>
+                  <Input
+                    value={formState.buyerDetails?.procurementCategories || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        buyerDetails: {
+                          ...prev.buyerDetails,
+                          procurementCategories: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="Steel, plastics, packaging"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuDollarSign className="h-4 w-4 text-muted-foreground" />
+                    Average monthly spend
+                  </label>
+                  <Input
+                    value={formState.buyerDetails?.avgMonthlySpend || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        buyerDetails: {
+                          ...prev.buyerDetails,
+                          avgMonthlySpend: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="$25k - $50k"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuPackage className="h-4 w-4 text-muted-foreground" />
+                    Typical order volume
+                  </label>
+                  <Input
+                    value={formState.buyerDetails?.typicalOrderVolume || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        buyerDetails: {
+                          ...prev.buyerDetails,
+                          typicalOrderVolume: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="500kg - 2 tons"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuTruck className="h-4 w-4 text-muted-foreground" />
+                    Delivery preferences
+                  </label>
+                  <Input
+                    value={formState.buyerDetails?.deliveryPreferences || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        buyerDetails: {
+                          ...prev.buyerDetails,
+                          deliveryPreferences: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="Doorstep delivery, weekly"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuCreditCard className="h-4 w-4 text-muted-foreground" />
+                    Payment terms
+                  </label>
+                  <Input
+                    value={formState.buyerDetails?.paymentTerms || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        buyerDetails: {
+                          ...prev.buyerDetails,
+                          paymentTerms: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="Net 15, bank transfer"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuWarehouse className="h-4 w-4 text-muted-foreground" />
+                    Storage capacity
+                  </label>
+                  <Input
+                    value={formState.buyerDetails?.storageCapacity || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        buyerDetails: {
+                          ...prev.buyerDetails,
+                          storageCapacity: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="250 sqm warehouse"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuShield className="h-4 w-4 text-muted-foreground" />
+                    Compliance needs
+                  </label>
+                  <Input
+                    value={formState.buyerDetails?.complianceNeeds || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        buyerDetails: {
+                          ...prev.buyerDetails,
+                          complianceNeeds: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="ISO 9001, REACH"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuBuilding className="h-4 w-4 text-muted-foreground" />
+                    Preferred suppliers
+                  </label>
+                  <Input
+                    value={formState.buyerDetails?.preferredSuppliers || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        buyerDetails: {
+                          ...prev.buyerDetails,
+                          preferredSuppliers: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="Local suppliers, within 150km"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <LuNotebook className="h-4 w-4 text-muted-foreground" />
+                    Additional notes
+                  </label>
+                  <Textarea
+                    value={formState.buyerDetails?.notes || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        buyerDetails: {
+                          ...prev.buyerDetails,
+                          notes: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="Share any specific sourcing requirements"
+                    disabled={isLocked}
+                    className="min-h-30"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {showSupplierFields && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <LuPackage className="h-5 w-5" />
+                  Supplier profile
+                </CardTitle>
+                <CardDescription>Help buyers evaluate your capacity and compliance.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Product categories</label>
+                  <Input
+                    value={formState.supplierDetails?.productCategories || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        supplierDetails: {
+                          ...prev.supplierDetails,
+                          productCategories: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="Steel coils, HDPE granules"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Production capacity</label>
+                  <Input
+                    value={formState.supplierDetails?.productionCapacity || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        supplierDetails: {
+                          ...prev.supplierDetails,
+                          productionCapacity: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="5 tons / week"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Minimum order quantity</label>
+                  <Input
+                    value={formState.supplierDetails?.minOrderQuantity || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        supplierDetails: {
+                          ...prev.supplierDetails,
+                          minOrderQuantity: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="500kg"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Lead time (days)</label>
+                  <Input
+                    type="number"
+                    value={formState.supplierDetails?.leadTimeDays ?? ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        supplierDetails: {
+                          ...prev.supplierDetails,
+                          leadTimeDays: event.target.value ? Number(event.target.value) : undefined,
+                        },
+                      }))
+                    }
+                    placeholder="7"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Certifications</label>
+                  <Input
+                    value={formState.supplierDetails?.certifications || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        supplierDetails: {
+                          ...prev.supplierDetails,
+                          certifications: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="ISO 9001, ISO 14001"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Warehouse locations</label>
+                  <Input
+                    value={formState.supplierDetails?.warehouseLocations || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        supplierDetails: {
+                          ...prev.supplierDetails,
+                          warehouseLocations: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="Lagos, Abuja"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Quality assurance</label>
+                  <Input
+                    value={formState.supplierDetails?.qualityAssurance || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        supplierDetails: {
+                          ...prev.supplierDetails,
+                          qualityAssurance: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="In-house QC, third-party audits"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Logistics capabilities</label>
+                  <Input
+                    value={formState.supplierDetails?.logisticsCapabilities || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        supplierDetails: {
+                          ...prev.supplierDetails,
+                          logisticsCapabilities: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="In-house fleet, partner carriers"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Payment terms</label>
+                  <Input
+                    value={formState.supplierDetails?.paymentTerms || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        supplierDetails: {
+                          ...prev.supplierDetails,
+                          paymentTerms: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="Net 30, LC"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Service regions</label>
+                  <Input
+                    value={formState.supplierDetails?.serviceRegions || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        supplierDetails: {
+                          ...prev.supplierDetails,
+                          serviceRegions: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="West Africa"
+                    disabled={isLocked}
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-medium">Additional notes</label>
+                  <Textarea
+                    value={formState.supplierDetails?.notes || ""}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        supplierDetails: {
+                          ...prev.supplierDetails,
+                          notes: event.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="Share any supply guarantees or differentiators"
+                    disabled={isLocked}
+                    className="min-h-30"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <LuFileCheck className="h-5 w-5" />
+                Verification documents
+              </CardTitle>
+              <CardDescription>Upload required documents for verification.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              {formState.documents?.map((doc, index) => (
+                <FileUploadField
+                  key={doc.docType}
+                  docType={doc.docType}
+                  fileName={doc.fileName}
+                  index={index}
+                  disabled={isLocked}
+                />
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button
@@ -1161,9 +1331,17 @@ export function OnboardingForm({ initialStatus, initialCompanyType, initialProfi
         >
           Clear draft
         </Button>
-        <Button onClick={handleSubmit} disabled={isLocked || isSubmitting || missingRequired}>
-          {isSubmitting ? "Submitting..." : "Submit for verification"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="ghost" onClick={handleBack} disabled={activeTab === "role"}>
+            Back
+          </Button>
+          <Button type="button" variant="outline" onClick={handleNext} disabled={activeTab === "documents" || (!canMoveForward && activeTab === "role")}>
+            Next
+          </Button>
+          <Button onClick={handleSubmit} disabled={isLocked || isSubmitting || missingRequired}>
+            {isSubmitting ? "Submitting..." : "Submit for verification"}
+          </Button>
+        </div>
       </div>
     </div>
   );
