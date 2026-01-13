@@ -36,7 +36,7 @@ interface RootCredenzaProps extends BaseProps {
 
 interface CredenzaProps extends BaseProps {
   className?: string
-  render?: React.ReactElement | ((props: any, state: any) => React.ReactElement)
+  render?: React.ReactElement | ((props: React.PropsWithChildren<{}>, state: React.ComponentState) => React.ReactElement)
 }
 
 const CredenzaContext = React.createContext<{ isMobile: boolean }>({
@@ -66,12 +66,12 @@ const Credenza = ({ children, ...props }: RootCredenzaProps) => {
   )
 }
 
-const CredenzaTrigger = ({ className, children, ...props }: CredenzaProps) => {
+const CredenzaTrigger = ({ className, children, render, ...props }: CredenzaProps) => {
   const { isMobile } = useCredenzaContext()
   const CredenzaTrigger = isMobile ? DrawerTrigger : DialogTrigger
 
   return (
-    <CredenzaTrigger className={className} {...props}>
+    <CredenzaTrigger className={className} render={render} {...props}>
       {children}
     </CredenzaTrigger>
   )

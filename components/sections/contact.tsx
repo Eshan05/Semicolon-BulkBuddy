@@ -160,7 +160,7 @@ export function ContactFormSection() {
                     aria-required="true"
                     required
                   />
-                  {state?.errors?.name && (
+                  {state?.success === false && state.errors?.name && (
                     <p className="text-xs text-red-500">{state.errors.name[0]}</p>
                   )}
                 </div>
@@ -188,7 +188,7 @@ export function ContactFormSection() {
                       required
                     />
                   </div>
-                  {state?.errors?.email && (
+                  {state?.success === false && state.errors?.email && (
                     <p className="text-xs text-red-500">{state.errors.email[0]}</p>
                   )}
                 </div>
@@ -238,7 +238,7 @@ export function ContactFormSection() {
                     required
                   />
                 </div>
-                {state?.errors?.message && (
+                {state?.success === false && state.errors?.message && (
                   <p className="text-xs text-red-500">{state.errors.message[0]}</p>
                 )}
               </div>

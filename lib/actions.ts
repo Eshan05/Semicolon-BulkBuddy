@@ -9,12 +9,36 @@ const contactSchema = z.object({
   message: z.string().min(10, "Message must be at least 10 characters"),
 })
 
-export async function submitContactForm(formData: FormData) {
-  const rawData = {
-    name: formData.get('name'),
-    email: formData.get('email'),
-    phone: formData.get('phone'),
-    message: formData.get('message'),
+interface ContactFormData {
+  name: string
+  email: string
+  phone?: string
+  message: string
+}
+
+interface ContactFormError {
+  success: false
+  errors: {
+    name?: string[]
+    email?: string[]
+    phone?: string[]
+    message?: string[]
+  }
+}
+
+interface ContactFormSuccess {
+  success: true
+  message: string
+}
+
+type ContactFormResult = ContactFormError | ContactFormSuccess
+
+export async function submitContactForm(prevState: unknown, formData: FormData): Promise<ContactFormResult> {
+  const rawData: ContactFormData = {
+    name: formData.get('name') as string,
+    email: formData.get('email') as string,
+    phone: formData.get('phone') as string | undefined,
+    message: formData.get('message') as string,
   }
 
   const validatedData = contactSchema.safeParse(rawData)

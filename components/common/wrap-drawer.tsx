@@ -26,7 +26,7 @@ interface WrapDrawerProps extends BaseProps {
 
 interface WDProps extends BaseProps {
   className?: string
-  render?: React.ReactElement | ((props: any, state: any) => React.ReactElement)
+  render?: React.ReactElement | ((props: React.PropsWithChildren<{}>, state: React.ComponentState) => React.ReactElement)
 }
 
 const WrapDrawerContext = React.createContext<{

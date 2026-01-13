@@ -162,21 +162,21 @@ export default function PublicNavbar() {
 
                     <footer className="pt-6 mt-6 border-t border-border">
                       <div className="flex flex-col gap-3">
-                          {session ? (
-                            <Button render={<Link href="/dashboard" className="w-full text-center" />}>
-                              Dashboard
+                        {session ? (
+                          <Button render={<Link href="/dashboard" className="w-full text-center" />}>
+                            Dashboard
+                          </Button>
+                        ) : (
+                          <>
+                            <Button variant={'outline'} className="w-full rounded-xl" render={<Link href="/sign-in" />}>
+                              Sign in
                             </Button>
-                          ) : (
-                            <>
-                              <Button variant={'outline'} className="w-full rounded-xl" render={<Link href="/sign-in" />}>
-                                Sign in
-                              </Button>
 
-                              <Button className="w-full rounded-xl" render={<Link href="/sign-up" />}>
-                                Join BulkBuddy
-                              </Button>
-                            </>
-                          )}
+                            <Button className="w-full rounded-xl" render={<Link href="/sign-up" />}>
+                              Join BulkBuddy
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </footer>
                   </div>
