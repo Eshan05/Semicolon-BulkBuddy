@@ -71,6 +71,8 @@ type Props = {
   initialStatus: OnboardingStatus;
   initialCompanyType: string | null;
   initialProfile: OnboardingProfile | null;
+  allowEditApproved?: boolean;
+  hideStatusCard?: boolean;
 };
 
 const defaultFormState: OnboardingProfile = {
@@ -125,7 +127,13 @@ const defaultFormState: OnboardingProfile = {
   ],
 };
 
-export function OnboardingForm({ initialStatus, initialCompanyType, initialProfile }: Props) {
+export function OnboardingForm({
+  initialStatus,
+  initialCompanyType,
+  initialProfile,
+  allowEditApproved = false,
+  hideStatusCard = false,
+}: Props) {
   const [status, setStatus] = useState<OnboardingStatus>(initialStatus);
   const [formState, setFormState] = useState<OnboardingProfile>(() => {
     if (!initialProfile) {
@@ -147,7 +155,7 @@ export function OnboardingForm({ initialStatus, initialCompanyType, initialProfi
     return initialType ? "company" : "role";
   });
 
-  const isLocked = status === "pending" || status === "approved";
+  const isLocked = status === "pending" || (status === "approved" && !allowEditApproved);
   const showBuyerFields = formState.companyType === "buyer";
   const showSupplierFields = formState.companyType === "supplier";
   const canMoveForward = !!formState.companyType;
@@ -459,27 +467,29 @@ export function OnboardingForm({ initialStatus, initialCompanyType, initialProfi
 
   return (
     <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
+      {!hideStatusCard && (
+        <Card>
+          <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <StatusIcon />
+                Verification status
+              </CardTitle>
+              <CardDescription>Keep this page open to track approval progress.</CardDescription>
+            </div>
+            <Badge variant={statusBadge} className="w-fit capitalize flex items-center gap-1">
               <StatusIcon />
-              Verification status
-            </CardTitle>
-            <CardDescription>Keep this page open to track approval progress.</CardDescription>
-          </div>
-          <Badge variant={statusBadge} className="w-fit capitalize flex items-center gap-1">
-            <StatusIcon />
-            {status.replace("_", " ")}
-          </Badge>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          {status === "approved" && "Your company has been verified. You can access the dashboard now."}
-          {status === "pending" && "Your details are being reviewed by the admin team. We'll notify you once approved."}
-          {status === "rejected" && "Your submission needs updates. Please revise the form and resubmit."}
-          {status === "not_started" && "Complete the form below to request access to the BulkBuddy platform."}
-        </CardContent>
-      </Card>
+              {status.replace("_", " ")}
+            </Badge>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">
+            {status === "approved" && "Your company has been verified. You can access the dashboard now."}
+            {status === "pending" && "Your details are being reviewed by the admin team. We'll notify you once approved."}
+            {status === "rejected" && "Your submission needs updates. Please revise the form and resubmit."}
+            {status === "not_started" && "Complete the form below to request access to the BulkBuddy platform."}
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full flex-wrap" variant="line">

@@ -1,6 +1,7 @@
 'use server'
 
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -10,10 +11,12 @@ import { db } from "@/lib/db";
 import {
   buyerProfile,
   companyProfile,
+  notification,
   supplierProfile,
   user,
   verificationDocument,
 } from "@/lib/db/schema";
+import { logAudit } from "@/lib/audit";
 
 const onboardingSchema = z.object({
   companyType: z.enum(["buyer", "supplier"]),
@@ -76,6 +79,54 @@ const onboardingSchema = z.object({
 
 export type OnboardingPayload = z.infer<typeof onboardingSchema>;
 
+export type OnboardingFormProfile = {
+  companyName: string;
+  legalName: string;
+  companyType: "buyer" | "supplier" | "";
+  registrationNumber?: string | null;
+  taxId?: string | null;
+  website?: string | null;
+  yearFounded?: number | null;
+  employeeCount?: string | null;
+  annualRevenueBand?: string | null;
+  addressLine1: string;
+  addressLine2?: string | null;
+  city: string;
+  state?: string | null;
+  country: string;
+  postalCode?: string | null;
+  contactName: string;
+  contactRole?: string | null;
+  contactEmail: string;
+  contactPhone: string;
+  alternatePhone?: string | null;
+  buyerDetails?: {
+    procurementCategories?: string | null;
+    avgMonthlySpend?: string | null;
+    typicalOrderVolume?: string | null;
+    deliveryPreferences?: string | null;
+    paymentTerms?: string | null;
+    storageCapacity?: string | null;
+    complianceNeeds?: string | null;
+    preferredSuppliers?: string | null;
+    notes?: string | null;
+  } | null;
+  supplierDetails?: {
+    productCategories?: string | null;
+    productionCapacity?: string | null;
+    minOrderQuantity?: string | null;
+    leadTimeDays?: number | null;
+    certifications?: string | null;
+    warehouseLocations?: string | null;
+    qualityAssurance?: string | null;
+    logisticsCapabilities?: string | null;
+    paymentTerms?: string | null;
+    serviceRegions?: string | null;
+    notes?: string | null;
+  } | null;
+  documents?: { docType: string; fileName?: string | null }[] | null;
+};
+
 async function getAuthedUser() {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -136,7 +187,75 @@ export async function getOnboardingProfile() {
     return null;
   }
 
-  return existing;
+  const companyType =
+    existing.companyType === "buyer" || existing.companyType === "supplier"
+      ? existing.companyType
+      : "";
+
+  const buyerDetails = existing.buyerProfile
+    ? {
+      procurementCategories: existing.buyerProfile.procurementCategories,
+      avgMonthlySpend: existing.buyerProfile.avgMonthlySpend,
+      typicalOrderVolume: existing.buyerProfile.typicalOrderVolume,
+      deliveryPreferences: existing.buyerProfile.deliveryPreferences,
+      paymentTerms: existing.buyerProfile.paymentTerms,
+      storageCapacity: existing.buyerProfile.storageCapacity,
+      complianceNeeds: existing.buyerProfile.complianceNeeds,
+      preferredSuppliers: existing.buyerProfile.preferredSuppliers,
+      notes: existing.buyerProfile.notes,
+    }
+    : null;
+
+  const supplierDetails = existing.supplierProfile
+    ? {
+      productCategories: existing.supplierProfile.productCategories,
+      productionCapacity: existing.supplierProfile.productionCapacity,
+      minOrderQuantity: existing.supplierProfile.minOrderQuantity,
+      leadTimeDays: existing.supplierProfile.leadTimeDays,
+      certifications: existing.supplierProfile.certifications,
+      warehouseLocations: existing.supplierProfile.warehouseLocations,
+      qualityAssurance: existing.supplierProfile.qualityAssurance,
+      logisticsCapabilities: existing.supplierProfile.logisticsCapabilities,
+      paymentTerms: existing.supplierProfile.paymentTerms,
+      serviceRegions: existing.supplierProfile.serviceRegions,
+      notes: existing.supplierProfile.notes,
+    }
+    : null;
+
+  const documents = existing.documents?.length
+    ? existing.documents.map((doc) => ({
+      docType: doc.docType,
+      fileName: doc.fileName,
+    }))
+    : null;
+
+  const profile: OnboardingFormProfile = {
+    companyName: existing.companyName,
+    legalName: existing.legalName,
+    companyType,
+    registrationNumber: existing.registrationNumber,
+    taxId: existing.taxId,
+    website: existing.website,
+    yearFounded: existing.yearFounded,
+    employeeCount: existing.employeeCount,
+    annualRevenueBand: existing.annualRevenueBand,
+    addressLine1: existing.addressLine1,
+    addressLine2: existing.addressLine2,
+    city: existing.city,
+    state: existing.state,
+    country: existing.country,
+    postalCode: existing.postalCode,
+    contactName: existing.contactName,
+    contactRole: existing.contactRole,
+    contactEmail: existing.contactEmail,
+    contactPhone: existing.contactPhone,
+    alternatePhone: existing.alternatePhone,
+    buyerDetails,
+    supplierDetails,
+    documents,
+  };
+
+  return profile;
 }
 
 export async function submitOnboarding(payload: OnboardingPayload) {
@@ -303,6 +422,15 @@ export async function updateVerificationStatus(params: {
     throw new Error("Unauthorized");
   }
 
+  const company = await db.query.companyProfile.findFirst({
+    where: eq(companyProfile.id, params.companyId),
+    with: { user: true },
+  });
+
+  if (!company) {
+    throw new Error("Company not found");
+  }
+
   await db
     .update(companyProfile)
     .set({
@@ -311,6 +439,31 @@ export async function updateVerificationStatus(params: {
       reviewedAt: new Date(),
     })
     .where(eq(companyProfile.id, params.companyId));
+
+  await db.insert(notification).values({
+    id: randomUUID(),
+    userId: company.userId,
+    type: "verification",
+    title: params.status === "approved" ? "Verification approved" : "Verification rejected",
+    body:
+      params.status === "approved"
+        ? "Your company verification has been approved. You now have full access."
+        : params.reason
+          ? `Your verification was rejected: ${params.reason}`
+          : "Your company verification was rejected.",
+    href: "/dashboard",
+  });
+
+  await logAudit({
+    actorId: authedUser.id,
+    action: params.status === "approved" ? "verification.approved" : "verification.rejected",
+    entityType: "company_profile",
+    entityId: params.companyId,
+    metadata: params.reason ? { reason: params.reason } : null,
+  });
+
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/admin/users");
 
   return { status: params.status };
 }

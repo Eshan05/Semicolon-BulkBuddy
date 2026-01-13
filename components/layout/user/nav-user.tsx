@@ -46,7 +46,9 @@ const PasskeysItem = dynamic(() => import('../../features/profile/settings/passk
 const TwoFaScanItem = dynamic(() => import('../../features/profile/settings/twofa-scan-item'), { ssr: false, loading: () => <QL /> })
 const TwoFaToggleItem = dynamic(() => import('../../features/profile/settings/twofa-toggle-item'), { ssr: false, loading: () => <QL /> })
 const VerifyEmailItem = dynamic(() => import('../../features/profile/settings/verify-email-item'), { ssr: false, loading: () => <QL /> })
+const InboxItem = dynamic(() => import('../../features/profile/settings/inbox-item'), { ssr: false, loading: () => <QL /> })
 const NotificationsItem = dynamic(() => import('../../features/profile/settings/notifications-item'), { ssr: false, loading: () => <QL /> })
+const EditProfileItem = dynamic(() => import('../../features/profile/settings/edit-profile-item'), { ssr: false, loading: () => <QL /> })
 const SignOutItem = dynamic(() => import('../../features/profile/settings/signout-item'), { ssr: false, loading: () => <QL /> })
 
 async function convertImageToBase64(file: File): Promise<string> {
@@ -131,7 +133,9 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              <InboxItem />
               <NotificationsItem />
+              <EditProfileItem />
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
