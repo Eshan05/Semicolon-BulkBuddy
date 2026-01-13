@@ -48,25 +48,27 @@ export default function SessionsItem({ session }: { session: SessionProp }) {
 
   return (
     <Credenza>
-      <CredenzaTrigger asChild>
-        <DropdownMenuItem
-          onSelect={(e) => {
-            e.preventDefault();
-            (async () => {
-              try {
-                const r = await fetch("/api/auth/list-sessions", { credentials: "same-origin" });
-                const json = await r.json();
-                setSessions(json || []);
-              } catch (err) {
-                console.error(err);
-                toast.error("Failed to load sessions");
-              }
-            })();
-          }}
-        >
-          <Laptop />
-          Manage Sessions
-        </DropdownMenuItem>
+      <CredenzaTrigger
+        render={
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              (async () => {
+                try {
+                  const r = await fetch("/api/auth/list-sessions", { credentials: "same-origin" });
+                  const json = await r.json();
+                  setSessions(json || []);
+                } catch (err) {
+                  console.error(err);
+                  toast.error("Failed to load sessions");
+                }
+              })();
+            }}
+          />
+        }
+      >
+        <Laptop />
+        Manage Sessions
       </CredenzaTrigger>
       <CredenzaContent>
         <CredenzaHeader>
@@ -100,7 +102,7 @@ export default function SessionsItem({ session }: { session: SessionProp }) {
                 };
 
                 return (
-                  <Accordion type="multiple" className="w-full mt-2">
+                  <Accordion multiple className="w-full mt-2">
                     {entries.map(([key, list]) => (
                       <AccordionItem key={key} value={key} className="border-b-0 w-full">
                         <AccordionTrigger className="flex items-center justify-between gap-3 px-2 py-2 rounded-md hover:bg-muted w-full">

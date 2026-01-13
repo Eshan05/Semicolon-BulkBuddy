@@ -31,11 +31,9 @@ export default function TwoFaToggleItem({ enabled }: { enabled?: boolean }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          {enabled ? <ShieldOff /> : <ShieldCheck />}
-          {enabled ? 'Disable 2FA' : 'Enable 2FA'}
-        </DropdownMenuItem>
+      <DialogTrigger render={<DropdownMenuItem onSelect={(e) => e.preventDefault()} />}>
+        {enabled ? <ShieldOff /> : <ShieldCheck />}
+        {enabled ? 'Disable 2FA' : 'Enable 2FA'}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] w-11/12">
         <DialogHeader>

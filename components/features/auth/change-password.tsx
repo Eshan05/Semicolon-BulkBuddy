@@ -80,11 +80,9 @@ export default function ChangePassword() {
 
   return (
     <Credenza open={open} onOpenChange={setOpen}>
-      <CredenzaTrigger asChild>
-        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          <MdPassword />
-          Change Password
-        </DropdownMenuItem>
+      <CredenzaTrigger render={<DropdownMenuItem onSelect={(e) => e.preventDefault()} />}>
+        <MdPassword />
+        Change Password
       </CredenzaTrigger>
 
       <CredenzaContent className="p-4">

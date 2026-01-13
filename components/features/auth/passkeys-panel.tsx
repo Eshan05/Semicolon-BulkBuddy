@@ -32,11 +32,9 @@ export function AddPasskeyInline() {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size={'sm'} className="gap-2 mx-auto">
-          <Fingerprint size={15} />
-          Add New Passkey
-        </Button>
+      <DialogTrigger render={<Button variant="outline" size={'sm'} className="gap-2 mx-auto" />}>
+        <Fingerprint size={15} />
+        Add New Passkey
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] w-11/12">
         <DialogHeader>

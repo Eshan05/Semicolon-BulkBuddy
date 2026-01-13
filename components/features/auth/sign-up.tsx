@@ -21,6 +21,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useResetTheme } from '@/hooks/use-reset-theme'
 
 type FormValues = {
   firstName: string;
@@ -34,6 +35,7 @@ type FormValues = {
 export function SignUp() {
   const router = useRouter();
   const params = useSearchParams();
+  useResetTheme()
   const [loading, startTransition] = useTransition();
   const [isVisible, setIsVisible] = useState(false);
   const [isConfirmVisible, setIsConfirmVisible] = useState(false);
@@ -86,7 +88,7 @@ export function SignUp() {
         <CardDescription className="text-sm">Join and get access to the dashboard and features.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2">
           <FieldGroup>
             <div className="grid grid-cols-2 gap-2">
               <Controller

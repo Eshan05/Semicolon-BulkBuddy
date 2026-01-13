@@ -29,10 +29,8 @@ export default function TwoFaScanItem() {
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          Scan QR Code
-        </DropdownMenuItem>
+      <DialogTrigger render={<DropdownMenuItem onSelect={(e) => e.preventDefault()} />}>
+        Scan QR Code
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] w-11/12">
         <DialogHeader>

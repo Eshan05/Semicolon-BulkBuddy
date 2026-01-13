@@ -21,6 +21,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { getCallbackURL } from "@/utils/shared";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useResetTheme } from "@/hooks/use-reset-theme";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -30,7 +31,8 @@ export default function SignIn() {
   const [loadingAction, setLoadingAction] = useState<null | "email" | "passkey" | "social">(null);
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
-  const params = useSearchParams();
+  const params = useSearchParams()
+  useResetTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -67,8 +69,8 @@ export default function SignIn() {
           <div className="leading-tight sm:text-balance">
             Please sign in either via email, your google account or using a registered passkey.
             <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="link" size="none" className="inline px-1">Need help?</Button>
+              <PopoverTrigger render={<Button variant="link" size="none" className="inline px-1" />}>
+                Need help?
               </PopoverTrigger>
               <PopoverContent className="w-xs text-sm">
                 If you are a doctor, contact your hospital or us to ensure you have a registered account first. For non-doctors, please sign up first if you don't have an account.
