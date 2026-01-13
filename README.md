@@ -16,6 +16,28 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Database (Better Auth + Turso/libSQL + Drizzle)
+
+This project uses Better Auth with the official Drizzle adapter, backed by Turso (libSQL). This works on Vercel (unlike `bun:sqlite`, and unlike local SQLite files which are not persistent on serverless).
+
+**Required env vars (Vercel + production):**
+- `TURSO_DATABASE_URL` (example: `libsql://a-eshan05.aws-ap-south-1.turso.io`)
+- `TURSO_AUTH_TOKEN` (create in Turso dashboard / CLI)
+
+**Local dev (quick start):**
+- If you don't set `TURSO_DATABASE_URL`, the app defaults to a local file: `file:./database.sqlite`.
+
+### Generate Better Auth tables
+
+- Generate the Drizzle schema for Better Auth + plugins:
+	- `bun run db:schema`
+
+- Create and apply migrations (local file by default):
+	- `bun run db:generate -- --name init`
+	- `bun run db:migrate`
+
+To apply migrations to Turso, set `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN` and run the same `db:generate`/`db:migrate` commands.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

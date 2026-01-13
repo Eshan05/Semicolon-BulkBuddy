@@ -6,9 +6,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   compiler: { removeConsole: process.env.NODE_ENV === "production" },
   // compiler: { removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error"] } : false, },
-  serverExternalPackages: [
-    "@ai-sdk/groq",
-  ],
+  serverExternalPackages: ["@ai-sdk/groq"],
   images: {
     minimumCacheTTL: 2678400,
     remotePatterns: [
