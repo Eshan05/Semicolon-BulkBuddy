@@ -89,15 +89,11 @@ export default function ResetPassword() {
             <Button variant="outline" className="w-full" onClick={() => setIsSubmitted(false)}>
               <ArrowLeft className="h-4 w-4" /> Back
             </Button>
-            <Button asChild variant="secondary" className="w-full">
-              <Link href="/contact">
-                <MailIcon className="h-4 w-4" /> Contact us
-              </Link>
+            <Button variant="secondary" className="w-full" render={<Link href="/contact" />}>
+              <MailIcon className="h-4 w-4" /> Contact us
             </Button>
-            <Button asChild variant="default" className="w-full">
-              <Link href="/patient/dashboard">
-                <ExternalLink className="h-4 w-4" /> Go to dashboard
-              </Link>
+            <Button variant="default" className="w-full" render={<Link href="/patient/dashboard" />}>
+              <ExternalLink className="h-4 w-4" /> Go to dashboard
             </Button>
           </CardFooter>
         </Card>

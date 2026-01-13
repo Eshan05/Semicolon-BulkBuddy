@@ -26,7 +26,7 @@ interface WrapDrawerProps extends BaseProps {
 
 interface WDProps extends BaseProps {
   className?: string
-  asChild?: true
+  render?: React.ReactElement | ((props: any, state: any) => React.ReactElement)
 }
 
 const WrapDrawerContext = React.createContext<{
@@ -95,10 +95,12 @@ const WDContent = ({
         <CredenzaFooter>
           {footer}
           {showClose && (
-            <CredenzaClose asChild>
-              <button className="px-4 py-2 rounded-md bg-neutral-900 text-neutral-50 hover:bg-neutral-800 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200">
-                Close
-              </button>
+            <CredenzaClose
+              render={
+                <button className="px-4 py-2 rounded-md bg-neutral-900 text-neutral-50 hover:bg-neutral-800 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200" />
+              }
+            >
+              Close
             </CredenzaClose>
           )}
         </CredenzaFooter>

@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Slot } from "radix-ui";
+import { useRender } from "@base-ui/react/use-render";
+import { mergeProps } from "@base-ui/react/merge-props";
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
@@ -70,42 +71,57 @@ interface IconRefProps {
 }
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends useRender.ComponentProps<'button'>,
   VariantProps<typeof buttonVariants> {
-  asChild?: boolean;
 }
 
 export type ButtonIconProps = IconProps | IconRefProps;
 
-const EButton = React.forwardRef<HTMLButtonElement, ButtonProps & ButtonIconProps>(
-  ({ className, variant, effect, size, icon: Icon, iconPlacement, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot.Root : 'button';
-    return (
-      <Comp className={cn(buttonVariants({ variant, effect, size, className }))} ref={ref} {...props}>
-        {Icon &&
-          iconPlacement === 'left' &&
-          (effect === 'expandIcon' ? (
-            <div className="w-0 translate-x-[0%] pr-0 opacity-0 transition-all duration-200 group-hover:w-5 group-hover:translate-x-100 group-hover:pr-2 group-hover:opacity-100">
-              <Icon />
-            </div>
-          ) : (
-            <Icon />
-          ))}
-        <Slot.Slottable>{props.children}</Slot.Slottable>
-        {Icon &&
-          iconPlacement === 'right' &&
-          (effect === 'expandIcon' ? (
-            <div className="w-0 translate-x-[100%] pl-0 opacity-0 transition-all duration-200 group-hover:w-5 group-hover:translate-x-0 group-hover:pl-2 group-hover:opacity-100">
-              <Icon />
-            </div>
-          ) : (
-            <Icon />
-          ))}
-      </Comp>
-    );
-  }
-);
-EButton.displayName = 'EButton';
+function EButton({
+  className,
+  variant,
+  effect,
+  size,
+  icon: Icon,
+  iconPlacement,
+  render,
+  children,
+  ...props
+}: ButtonProps & ButtonIconProps) {
+  return useRender({
+    defaultTagName: 'button',
+    render,
+    props: mergeProps<'button'>(
+      {
+        className: cn(buttonVariants({ variant, effect, size, className })),
+        children: (
+          <>
+            {Icon &&
+              iconPlacement === 'left' &&
+              (effect === 'expandIcon' ? (
+                <div className="w-0 translate-x-[0%] pr-0 opacity-0 transition-all duration-200 group-hover:w-5 group-hover:translate-x-100 group-hover:pr-2 group-hover:opacity-100">
+                  <Icon />
+                </div>
+              ) : (
+                <Icon />
+              ))}
+            {children}
+            {Icon &&
+              iconPlacement === 'right' &&
+              (effect === 'expandIcon' ? (
+                <div className="w-0 translate-x-[100%] pl-0 opacity-0 transition-all duration-200 group-hover:w-5 group-hover:translate-x-0 group-hover:pl-2 group-hover:opacity-100">
+                  <Icon />
+                </div>
+              ) : (
+                <Icon />
+              ))}
+          </>
+        ),
+      },
+      props
+    ),
+  });
+}
 
 export { EButton, buttonVariants };
 

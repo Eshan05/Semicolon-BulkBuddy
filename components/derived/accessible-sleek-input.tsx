@@ -37,15 +37,17 @@ export const AdornedInputField = forwardRef<HTMLInputElement, AdornedInputFieldP
         />
 
         <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              className='absolute top-1/2 -translate-y-1/2 start-1'
-              aria-label={popoverLabel}
-              size={'md-icon'}
-              variant={'ghost'}
-            >
-              <Icon size={16} aria-hidden="true" className='text-muted-foreground' />
-            </Button>
+          <PopoverTrigger
+            render={
+              <Button
+                className='absolute top-1/2 -translate-y-1/2 start-1'
+                aria-label={popoverLabel}
+                size={'md-icon'}
+                variant={'ghost'}
+              />
+            }
+          >
+            <Icon size={16} aria-hidden="true" className='text-muted-foreground' />
           </PopoverTrigger>
           <PopoverContent side='right' className='px-3 py-1.5 text-xs text-balance w-max'>
             {popoverContent}
