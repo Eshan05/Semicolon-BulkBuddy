@@ -210,6 +210,128 @@ export const deviceCode = sqliteTable("device_code", {
   scope: text("scope"),
 });
 
+export const companyProfile = sqliteTable(
+  "company_profile",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    companyName: text("company_name").notNull(),
+    legalName: text("legal_name").notNull(),
+    companyType: text("company_type").notNull(),
+    registrationNumber: text("registration_number"),
+    taxId: text("tax_id"),
+    website: text("website"),
+    yearFounded: integer("year_founded"),
+    employeeCount: text("employee_count"),
+    annualRevenueBand: text("annual_revenue_band"),
+    addressLine1: text("address_line_1").notNull(),
+    addressLine2: text("address_line_2"),
+    city: text("city").notNull(),
+    state: text("state"),
+    country: text("country").notNull(),
+    postalCode: text("postal_code"),
+    contactName: text("contact_name").notNull(),
+    contactRole: text("contact_role"),
+    contactEmail: text("contact_email").notNull(),
+    contactPhone: text("contact_phone").notNull(),
+    alternatePhone: text("alternate_phone"),
+    status: text("status").default("pending").notNull(),
+    statusReason: text("status_reason"),
+    submittedAt: integer("submitted_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    reviewedAt: integer("reviewed_at", { mode: "timestamp_ms" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("company_profile_user_uidx").on(table.userId),
+    uniqueIndex("company_profile_name_uidx").on(table.companyName),
+    index("company_profile_status_idx").on(table.status),
+  ],
+);
+
+export const buyerProfile = sqliteTable(
+  "buyer_profile",
+  {
+    id: text("id").primaryKey(),
+    companyId: text("company_id")
+      .notNull()
+      .references(() => companyProfile.id, { onDelete: "cascade" }),
+    procurementCategories: text("procurement_categories"),
+    avgMonthlySpend: text("avg_monthly_spend"),
+    typicalOrderVolume: text("typical_order_volume"),
+    deliveryPreferences: text("delivery_preferences"),
+    paymentTerms: text("payment_terms"),
+    storageCapacity: text("storage_capacity"),
+    complianceNeeds: text("compliance_needs"),
+    preferredSuppliers: text("preferred_suppliers"),
+    notes: text("notes"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [uniqueIndex("buyer_profile_company_uidx").on(table.companyId)],
+);
+
+export const supplierProfile = sqliteTable(
+  "supplier_profile",
+  {
+    id: text("id").primaryKey(),
+    companyId: text("company_id")
+      .notNull()
+      .references(() => companyProfile.id, { onDelete: "cascade" }),
+    productCategories: text("product_categories"),
+    productionCapacity: text("production_capacity"),
+    minOrderQuantity: text("min_order_quantity"),
+    leadTimeDays: integer("lead_time_days"),
+    certifications: text("certifications"),
+    warehouseLocations: text("warehouse_locations"),
+    qualityAssurance: text("quality_assurance"),
+    logisticsCapabilities: text("logistics_capabilities"),
+    paymentTerms: text("payment_terms"),
+    serviceRegions: text("service_regions"),
+    notes: text("notes"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [uniqueIndex("supplier_profile_company_uidx").on(table.companyId)],
+);
+
+export const verificationDocument = sqliteTable(
+  "verification_document",
+  {
+    id: text("id").primaryKey(),
+    companyId: text("company_id")
+      .notNull()
+      .references(() => companyProfile.id, { onDelete: "cascade" }),
+    docType: text("doc_type").notNull(),
+    fileName: text("file_name"),
+    fileUrl: text("file_url"),
+    status: text("status").default("pending").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [index("verification_document_company_idx").on(table.companyId)],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
@@ -217,6 +339,7 @@ export const userRelations = relations(user, ({ many }) => ({
   invitations: many(invitation),
   twoFactors: many(twoFactor),
   passkeys: many(passkey),
+  companyProfiles: many(companyProfile),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -273,3 +396,49 @@ export const passkeyRelations = relations(passkey, ({ one }) => ({
     references: [user.id],
   }),
 }));
+
+export const companyProfileRelations = relations(
+  companyProfile,
+  ({ one, many }) => ({
+    user: one(user, {
+      fields: [companyProfile.userId],
+      references: [user.id],
+    }),
+    buyerProfile: one(buyerProfile, {
+      fields: [companyProfile.id],
+      references: [buyerProfile.companyId],
+    }),
+    supplierProfile: one(supplierProfile, {
+      fields: [companyProfile.id],
+      references: [supplierProfile.companyId],
+    }),
+    documents: many(verificationDocument),
+  }),
+);
+
+export const buyerProfileRelations = relations(buyerProfile, ({ one }) => ({
+  company: one(companyProfile, {
+    fields: [buyerProfile.companyId],
+    references: [companyProfile.id],
+  }),
+}));
+
+export const supplierProfileRelations = relations(
+  supplierProfile,
+  ({ one }) => ({
+    company: one(companyProfile, {
+      fields: [supplierProfile.companyId],
+      references: [companyProfile.id],
+    }),
+  }),
+);
+
+export const verificationDocumentRelations = relations(
+  verificationDocument,
+  ({ one }) => ({
+    company: one(companyProfile, {
+      fields: [verificationDocument.companyId],
+      references: [companyProfile.id],
+    }),
+  }),
+);

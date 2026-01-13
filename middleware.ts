@@ -17,7 +17,8 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = pathname.startsWith("/admin");
   const isSupplierRoute = pathname.startsWith("/supplier");
   const isDashboardRoute = pathname.startsWith("/dashboard");
-  const protectedPrefixes = ["/admin", "/supplier", "/dashboard"];
+  const isOnboardingRoute = pathname.startsWith("/onboarding");
+  const protectedPrefixes = ["/admin", "/supplier", "/dashboard", "/onboarding"];
   const isTryingToAccessProtectedRoute = protectedPrefixes.some((prefix) =>
     pathname.startsWith(prefix)
   );
@@ -33,6 +34,43 @@ export async function middleware(request: NextRequest) {
   }
 
   const role = session.user.role;
+
+  if (isOnboardingRoute && role !== "admin") {
+    const { data: onboarding } = await betterFetch<{ status: string; completed: boolean; companyType?: string }>(
+      "/api/onboarding/status",
+      {
+        baseURL: request.nextUrl.origin,
+        headers: {
+          cookie: request.headers.get("cookie") || "",
+        },
+      },
+    );
+
+    if (onboarding?.completed) {
+      if (role === "supplier") {
+        return NextResponse.redirect(new URL("/supplier/dashboard", request.url));
+      }
+      if (role === "buyer") {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+    }
+  }
+
+  if (!isAdminRoute && !isOnboardingRoute && role !== "admin") {
+    const { data: onboarding } = await betterFetch<{ status: string; completed: boolean }>(
+      "/api/onboarding/status",
+      {
+        baseURL: request.nextUrl.origin,
+        headers: {
+          cookie: request.headers.get("cookie") || "",
+        },
+      },
+    );
+
+    if (!onboarding?.completed) {
+      return NextResponse.redirect(new URL("/onboarding", request.url));
+    }
+  }
 
   // RBAC Logic
   if (isAdminRoute && role !== "admin") {
@@ -73,5 +111,6 @@ export const config = {
     "/admin/:path*",
     "/supplier/:path*",
     "/dashboard/:path*",
+    "/onboarding/:path*",
   ],
 };

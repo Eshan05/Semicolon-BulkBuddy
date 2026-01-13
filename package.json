@@ -9,6 +9,7 @@
     "db:schema": "bun x @better-auth/cli@latest generate --output lib/db/schema-t.ts --yes",
     "db:generate": "bunx drizzle-kit generate",
     "db:migrate": "bunx drizzle-kit migrate",
+    "db:push": "bun x drizzle-kit push",
     "lint:biome": "biome check",
     "lint:ts": "tsc --noEmit",
     "lint:ox": "bunx oxlint@latest",

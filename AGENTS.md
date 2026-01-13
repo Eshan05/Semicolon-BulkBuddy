@@ -45,3 +45,5 @@ Imagine a flow like this (VERY BASIC):
 - Always verify both buyer and signups. When they put their onboarding details it will go to an admin verification queue. Whereby, the admin will read their details, documents and so on then only they will be allowed on the platform
 - If oversubscription happens and supplier can't fulfil excess then should send notification to other suppliers.  
 - Edge Case: Supplier-Buyer Collusion: A supplier and buyer fake-join to manipulate prices for others. Why it matters: Undermines fairness. Mitigation: Audit logs and AI flagging unusual patterns
+
+VERY IMPORTANT: For now it will be single point of contact, AKA one company only have one account, not a proper organization system. Company name / branch should be unique
