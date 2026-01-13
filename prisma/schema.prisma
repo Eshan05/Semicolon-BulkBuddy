@@ -1,0 +1,344 @@
+// BulkBuddy – PostgreSQL schema
+// - UUID PKs
+// - Money stored in integers (paise)
+// - Timestamps everywhere
+// - Soft delete where applicable
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  SUPPLIER
+  BUYER
+}
+
+enum PoolStatus {
+  DRAFT
+  OPEN
+  LOCKED
+  COMPLETED
+  CANCELLED
+}
+
+enum OrderStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+
+enum NotificationType {
+  PRICE_DROP
+  POOL_COMPLETED
+  ORDER_CONFIRMED
+}
+
+model User {
+  id          String   @id @default(uuid()) @db.Uuid
+  authSubject String   @unique // maps to Better Auth principal id / user id
+
+  role        UserRole
+  displayName String?
+  email       String?
+  phoneE164   String?
+
+  businessId  String?  @db.Uuid
+  business    Business? @relation(fields: [businessId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  deviceTokens DeviceToken[]
+  poolMembers  PoolMember[]
+  orders       Order[]
+  auditLogs    AuditLog[]
+  notifications Notification[]
+
+  @@index([businessId])
+  @@index([role])
+  @@map("users")
+}
+
+model Business {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  gstin     String?
+
+  // HQ or billing location
+  address   String?
+  lat       Decimal? @db.Decimal(10, 7)
+  lng       Decimal? @db.Decimal(10, 7)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  users     User[]
+  suppliers Supplier[]
+  pools     Pool[]
+  orders    Order[]
+  auditLogs AuditLog[]
+
+  @@map("businesses")
+}
+
+model Supplier {
+  id          String   @id @default(uuid()) @db.Uuid
+  businessId  String   @db.Uuid
+  business    Business @relation(fields: [businessId], references: [id])
+
+  name        String
+  contactName String?
+  email       String?
+  phoneE164   String?
+
+  // Factory location (for pooling eligibility)
+  factoryAddress String?
+  factoryLat     Decimal? @db.Decimal(10, 7)
+  factoryLng     Decimal? @db.Decimal(10, 7)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  products    Product[]
+
+  @@index([businessId])
+  @@map("suppliers")
+}
+
+model Product {
+  id          String   @id @default(uuid()) @db.Uuid
+  supplierId  String   @db.Uuid
+  supplier    Supplier @relation(fields: [supplierId], references: [id])
+
+  name        String
+  unit        String   // e.g. kg, ton
+  specs       Json?
+
+  // Base price for display (actual pool price comes from tiers)
+  basePricePaise Int
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  pools       Pool[]
+  pricingTiers PricingTier[]
+  orderItems  OrderItem[]
+
+  @@index([supplierId])
+  @@map("products")
+}
+
+model Pool {
+  id          String     @id @default(uuid()) @db.Uuid
+  businessId  String     @db.Uuid
+  business    Business   @relation(fields: [businessId], references: [id])
+
+  productId   String     @db.Uuid
+  product     Product    @relation(fields: [productId], references: [id])
+
+  // Pool geo eligibility center; we never expose competitor points.
+  centerLat   Decimal?   @db.Decimal(10, 7)
+  centerLng   Decimal?   @db.Decimal(10, 7)
+  radiusKm    Int        @default(50)
+
+  status      PoolStatus @default(OPEN)
+
+  // Denormalized for fast pricing decisions.
+  totalQuantity Int      @default(0)
+
+  // Current applied tier (nullable until first threshold hit)
+  appliedTierId String?  @db.Uuid
+  appliedTier   PricingTier? @relation("PoolAppliedTier", fields: [appliedTierId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  members     PoolMember[]
+  priceEvents PoolPriceEvent[]
+  orders      Order[]
+
+  @@index([businessId])
+  @@index([productId])
+  @@index([status])
+  @@map("pools")
+}
+
+model PoolMember {
+  id        String   @id @default(uuid()) @db.Uuid
+  poolId    String   @db.Uuid
+  pool      Pool     @relation(fields: [poolId], references: [id])
+
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+
+  // Idempotency + pricing safety: member quantity is mutable via upsert semantics.
+  quantity  Int
+
+  // Price snapshot at the time of last recalculation
+  unitPricePaise Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@unique([poolId, userId])
+  @@index([userId])
+  @@map("pool_members")
+}
+
+model PricingTier {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @db.Uuid
+  product   Product  @relation(fields: [productId], references: [id])
+
+  // Threshold is in product units (e.g. kg)
+  thresholdQuantity Int
+  unitPricePaise    Int
+
+  // Deterministic ordering.
+  sortOrder Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  appliedToPools Pool[] @relation("PoolAppliedTier")
+  priceEvents    PoolPriceEvent[]
+
+  @@unique([productId, sortOrder])
+  @@index([productId])
+  @@map("pricing_tiers")
+}
+
+model PoolPriceEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  poolId      String   @db.Uuid
+  pool        Pool     @relation(fields: [poolId], references: [id])
+
+  pricingTierId String @db.Uuid
+  pricingTier   PricingTier @relation(fields: [pricingTierId], references: [id])
+
+  // The tier change is applied once; idempotent by unique.
+  createdAt   DateTime @default(now())
+
+  @@unique([poolId, pricingTierId])
+  @@index([poolId])
+  @@map("pool_price_events")
+}
+
+model Order {
+  id          String      @id @default(uuid()) @db.Uuid
+  businessId  String      @db.Uuid
+  business    Business    @relation(fields: [businessId], references: [id])
+
+  userId      String      @db.Uuid
+  user        User        @relation(fields: [userId], references: [id])
+
+  poolId      String?     @db.Uuid
+  pool        Pool?       @relation(fields: [poolId], references: [id])
+
+  status      OrderStatus @default(DRAFT)
+
+  subtotalPaise Int
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  items       OrderItem[]
+
+  @@index([businessId])
+  @@index([userId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(uuid()) @db.Uuid
+  orderId   String  @db.Uuid
+  order     Order   @relation(fields: [orderId], references: [id])
+
+  productId String  @db.Uuid
+  product   Product @relation(fields: [productId], references: [id])
+
+  quantity  Int
+  unitPricePaise Int
+  lineTotalPaise Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model DeviceToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+
+  token     String   @unique
+  platform  String?
+
+  lastSeenAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([userId])
+  @@map("device_tokens")
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  user      User             @relation(fields: [userId], references: [id])
+
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+
+  sentAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([type])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  businessId  String?  @db.Uuid
+  userId      String?  @db.Uuid
+
+  action      String
+  resource    String
+  resourceId  String?
+
+  ip          String?
+  userAgent   String?
+  metadata    Json?
+
+  createdAt   DateTime @default(now())
+
+  user        User?    @relation(fields: [userId], references: [id])
+  business    Business? @relation(fields: [businessId], references: [id])
+
+  @@index([businessId])
+  @@index([userId])
+  @@index([action])
+  @@map("audit_logs")
+}
