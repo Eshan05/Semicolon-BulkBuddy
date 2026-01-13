@@ -3,6 +3,7 @@ import type { ReadonlyURLSearchParams } from "next/navigation";
 const allowedCallbackSet: ReadonlySet<string> = new Set([
   "/dashboard",
   "/device",
+  "/onboarding",
 ]);
 
 export const getCallbackURL = (

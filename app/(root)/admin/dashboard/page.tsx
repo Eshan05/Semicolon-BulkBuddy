@@ -2,8 +2,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, AlertTriangle, CreditCard, Users, ShieldCheck } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
-export default function AdminDashboard() {
+import { listPendingVerifications, updateVerificationStatus } from "@/lib/onboarding";
+
+export default async function AdminDashboard() {
+  const pending = await listPendingVerifications().catch(() => []);
   return (
     <div className="flex flex-col gap-8 p-6 md:p-8">
       <div className="flex items-center justify-between">
@@ -12,8 +16,8 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground">Platform-wide overview and management.</p>
         </div>
         <div className="flex gap-2">
-            <Button variant="outline">System Logs</Button>
-            <Button>User Management</Button>
+          <Button variant="outline">System Logs</Button>
+          <Button>User Management</Button>
         </div>
       </div>
 
@@ -61,9 +65,9 @@ export default function AdminDashboard() {
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">14</div>
+            <div className="text-2xl font-bold">{pending.length}</div>
             <p className="text-xs text-muted-foreground">
-              Suppliers awaiting approval
+              Companies awaiting approval
             </p>
           </CardContent>
         </Card>
@@ -79,26 +83,25 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-               {[
-                   { msg: "Suspicious login attempt detected (ID: 8821)", severity: "high", time: "10m ago" },
-                   { msg: "Pool #4492 failed to close automatically", severity: "medium", time: "1h ago" },
-                   { msg: "Supplier 'MetalCo' license expiring soon", severity: "low", time: "5h ago" },
-                   { msg: "User reported payment issue #Ticket-992", severity: "medium", time: "1d ago" },
-               ].map((alert, i) => (
-                   <div key={i} className="flex items-center justify-between rounded-md border p-4">
-                       <div className="flex items-center gap-4">
-                           <AlertTriangle className={`h-5 w-5 ${
-                               alert.severity === "high" ? "text-destructive" :
-                               alert.severity === "medium" ? "text-orange-500" : "text-blue-500"
-                           }`} />
-                           <div>
-                               <p className="text-sm font-medium">{alert.msg}</p>
-                               <p className="text-xs text-muted-foreground uppercase">{alert.severity} priority</p>
-                           </div>
-                       </div>
-                       <span className="text-xs text-muted-foreground">{alert.time}</span>
-                   </div>
-               ))}
+              {[
+                { msg: "Suspicious login attempt detected (ID: 8821)", severity: "high", time: "10m ago" },
+                { msg: "Pool #4492 failed to close automatically", severity: "medium", time: "1h ago" },
+                { msg: "Supplier 'MetalCo' license expiring soon", severity: "low", time: "5h ago" },
+                { msg: "User reported payment issue #Ticket-992", severity: "medium", time: "1d ago" },
+              ].map((alert, i) => (
+                <div key={i} className="flex items-center justify-between rounded-md border p-4">
+                  <div className="flex items-center gap-4">
+                    <AlertTriangle className={`h-5 w-5 ${alert.severity === "high" ? "text-destructive" :
+                        alert.severity === "medium" ? "text-orange-500" : "text-blue-500"
+                      }`} />
+                    <div>
+                      <p className="text-sm font-medium">{alert.msg}</p>
+                      <p className="text-xs text-muted-foreground uppercase">{alert.severity} priority</p>
+                    </div>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{alert.time}</span>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -111,26 +114,44 @@ export default function AdminDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-             <div className="space-y-4">
-                 {[
-                     { name: "Apex Manufacturing", role: "Supplier", date: "Just now" },
-                     { name: "BuildRight Construction", role: "Buyer", date: "20m ago" },
-                     { name: "Global Resins Ltd.", role: "Supplier", date: "1h ago" },
-                     { name: "TechParts Inc.", role: "Buyer", date: "3h ago" },
-                     { name: "SteelWorks Local", role: "Buyer", date: "5h ago" },
-                 ].map((user, i) => (
-                     <div key={i} className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0">
-                         <div>
-                             <p className="text-sm font-medium">{user.name}</p>
-                             <div className="flex items-center gap-2">
-                                 <Badge variant="secondary" className="px-1 py-0 text-[10px]">{user.role}</Badge>
-                                 <span className="text-xs text-muted-foreground">{user.date}</span>
-                             </div>
-                         </div>
-                         <Button size="sm" variant="ghost">Review</Button>
-                     </div>
-                 ))}
-             </div>
+            <div className="space-y-4">
+              {pending.length === 0 && (
+                <p className="text-sm text-muted-foreground">No pending verifications.</p>
+              )}
+              {pending.map((company) => (
+                <div key={company.id} className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0">
+                  <div>
+                    <p className="text-sm font-medium">{company.companyName}</p>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="px-1 py-0 text-tiny capitalize">
+                        {company.companyType}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(company.submittedAt), { addSuffix: true })}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <form
+                      action={async () => {
+                        "use server";
+                        await updateVerificationStatus({ companyId: company.id, status: "approved" });
+                      }}
+                    >
+                      <Button size="sm" variant="outline">Approve</Button>
+                    </form>
+                    <form
+                      action={async () => {
+                        "use server";
+                        await updateVerificationStatus({ companyId: company.id, status: "rejected" });
+                      }}
+                    >
+                      <Button size="sm" variant="ghost">Reject</Button>
+                    </form>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
