@@ -91,18 +91,18 @@ export function FooterBlock() {
               transition={{ duration: 0.2 }}
               className="mb-4 inline-flex items-center gap-3"
             >
-              <Card className="rounded-2xl border border-border/60 bg-card/80 px-3 py-1 text-xs font-bold uppercase tracking-[0.32em] text-primary shadow-[0_10px_30px_-20px_rgba(15,23,42,0.8)]">
+              <Card className="rounded-2xl border border-border/60 bg-card/80 px-3 py-1 text-xs font-bold text-primary shadow-[0_10px_30px_-20px_rgba(15,23,42,0.8)]">
                 BulkBuddy
               </Card>
               <Badge
                 variant="outline"
                 className="text-xs text-muted-foreground"
               >
-                v1.0.0
+                Beta
               </Badge>
             </motion.div>
             <p className="mb-4 max-w-md text-sm text-muted-foreground">
-              Empowering small and medium enterprises through collective purchasing power. 
+              Empowering small and medium enterprises through collective purchasing power.
               Join the movement and stop paying retail for your raw materials.
             </p>
 

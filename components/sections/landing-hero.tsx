@@ -311,7 +311,7 @@ export function GlowyWavesHero() {
         >
           <motion.div
             variants={itemVariants}
-            className="mb-6 inline-flex items-center gap-2 rounded-full border border-border/40 bg-background/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-foreground/70 dark:border-border/60 dark:bg-background/70 dark:text-foreground/80"
+            className="mb-6 inline-flex items-center gap-2 rounded-full border border-border/40 bg-background/60 px-4 py-2 text-xs font-semibold text-foreground/70 dark:border-border/60 dark:bg-background/70 dark:text-foreground/80"
           >
             <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
             Empowering SMEs with Bulk Power
@@ -331,7 +331,7 @@ export function GlowyWavesHero() {
             variants={itemVariants}
             className="mx-auto mb-10 max-w-3xl text-lg text-foreground/70 md:text-2xl"
           >
-            BulkBuddy groups geographically close SMEs together to place massive bulk orders. 
+            BulkBuddy groups geographically close SMEs together to place massive bulk orders.
             Get the same discounts as corporations by pooling your demand with others.
           </motion.p>
 
@@ -341,7 +341,7 @@ export function GlowyWavesHero() {
           >
             <Button
               size="lg"
-              className="group gap-2 rounded-full px-8 text-base uppercase tracking-[0.2em]"
+              className="group gap-2 rounded-full px-8 text-base"
             >
               Join a Pool
               <ArrowRight
@@ -360,7 +360,7 @@ export function GlowyWavesHero() {
 
           <motion.ul
             variants={itemVariants}
-            className="mb-12 flex flex-wrap items-center justify-center gap-3 text-xs uppercase tracking-[0.2em] text-foreground/70 dark:text-foreground/80"
+            className="mb-12 flex flex-wrap items-center justify-center gap-3 text-xs text-foreground/70 dark:text-foreground/80"
           >
             {highlightPills.map((pill) => (
               <li
@@ -382,7 +382,7 @@ export function GlowyWavesHero() {
                 variants={itemVariants}
                 className="space-y-1"
               >
-                <div className="text-xs uppercase tracking-[0.3em] text-foreground/50 dark:text-foreground/60">
+                <div className="text-xs text-foreground/50 dark:text-foreground/60">
                   {stat.label}
                 </div>
                 <div className="text-3xl font-semibold text-foreground">

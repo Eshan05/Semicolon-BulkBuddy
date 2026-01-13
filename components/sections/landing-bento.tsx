@@ -140,7 +140,7 @@ export function BentoGridBlock() {
         >
           <Badge
             variant="outline"
-            className="inline-flex items-center gap-2 rounded-full border-border/50 bg-background/60 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-foreground/70 backdrop-blur"
+            className="inline-flex items-center gap-2 rounded-full border-border/50 bg-background/60 px-4 py-1.5 text-xs text-foreground/70 backdrop-blur"
           >
             THE BULK HACK
             <span
@@ -152,7 +152,7 @@ export function BentoGridBlock() {
             Aggregate. Negotiate. Dominate.
           </h2>
           <p className="max-w-2xl text-base text-foreground/70 md:text-lg">
-            BulkBuddy uses advanced geographical clustering and real-time demand 
+            BulkBuddy uses advanced geographical clustering and real-time demand
             aggregation to unlock enterprise-grade pricing for local manufacturers.
           </p>
         </motion.header>
@@ -189,7 +189,7 @@ export function BentoGridBlock() {
               <div className="space-y-4">
                 <Badge
                   variant="secondary"
-                  className="w-fit rounded-full border-border/40 bg-background/80 px-3 py-1 text-xs uppercase tracking-[0.2em] text-foreground/70"
+                  className="w-fit rounded-full border-border/40 bg-background/80 px-3 py-1 text-xs text-foreground/70"
                 >
                   Dynamic Pricing Engine
                 </Badge>
@@ -197,7 +197,7 @@ export function BentoGridBlock() {
                   Watch the price drop as the pool grows
                 </h3>
                 <p className="text-sm text-foreground/70 md:text-base">
-                  As more SMEs join a pool, our algorithm renegotiates with suppliers in real-time. 
+                  As more SMEs join a pool, our algorithm renegotiates with suppliers in real-time.
                   Every new kilogram added to the pool lowers the price for everyone involved.
                 </p>
               </div>
@@ -244,7 +244,7 @@ export function BentoGridBlock() {
             <div className="flex items-center justify-between">
               <Badge
                 variant="secondary"
-                className="w-fit rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em] text-primary"
+                className="w-fit rounded-full px-3 py-1 text-xs text-primary"
               >
                 Performance
               </Badge>
@@ -262,7 +262,7 @@ export function BentoGridBlock() {
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
               {keyMetrics.map((metric) => (
                 <div key={metric.label} className="">
-                  <p className="text-xs uppercase tracking-[0.18em] text-foreground/60">
+                  <p className="text-xs text-foreground/60">
                     {metric.label}
                   </p>
                   <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
@@ -295,7 +295,7 @@ export function BentoGridBlock() {
             <div className="relative flex h-full flex-col justify-end space-y-4 p-6 md:p-8">
               <Badge
                 variant="outline"
-                className="w-fit rounded-full border-border/60 bg-background/80 px-3 py-1 text-xs uppercase tracking-[0.2em] text-foreground/70"
+                className="w-fit rounded-full border-border/60 bg-background/80 px-3 py-1 text-xs text-foreground/70"
               >
                 Geographical Clusters
               </Badge>
@@ -303,7 +303,7 @@ export function BentoGridBlock() {
                 Grouped by location for efficient logistics
               </h3>
               <p className="max-w-sm text-sm text-foreground/70 md:text-base">
-                We group businesses that are close to each other. This reduces last-mile delivery costs 
+                We group businesses that are close to each other. This reduces last-mile delivery costs
                 and allows for easy split-shipment fulfillment.
               </p>
               <div className="flex flex-wrap gap-2 pt-2">
@@ -311,7 +311,7 @@ export function BentoGridBlock() {
                   (tag) => (
                     <span
                       key={tag}
-                      className="rounded-full border border-border/40 bg-background/70 px-3 py-1 text-xs uppercase tracking-[0.18em] text-foreground/60"
+                      className="rounded-full border border-border/40 bg-background/70 px-3 py-1 text-xs text-foreground/60"
                     >
                       {tag}
                     </span>
@@ -332,7 +332,7 @@ export function BentoGridBlock() {
             <div className="space-y-4">
               <Badge
                 variant="outline"
-                className="w-fit rounded-full border-primary/50 bg-background/70 px-3 py-1 text-xs uppercase tracking-[0.2em] text-primary"
+                className="w-fit rounded-full border-primary/50 bg-background/70 px-3 py-1 text-xs text-primary"
               >
                 Verified Suppliers
               </Badge>
@@ -340,14 +340,14 @@ export function BentoGridBlock() {
                 Direct access to Tier-1 bulk suppliers
               </h3>
               <p className="text-sm text-foreground/70 md:text-base">
-                Skip the middlemen. BulkBuddy connects your pool directly to major manufacturers 
+                Skip the middlemen. BulkBuddy connects your pool directly to major manufacturers
                 and wholesalers who usually only deal with corporate giants.
               </p>
             </div>
             <div className="mt-6 space-y-4">
               {motionProcess.map((step, index) => (
                 <div key={step.label} className="space-y-2">
-                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.18em] text-foreground/60">
+                  <div className="flex items-center justify-between text-xs text-foreground/60">
                     <span>{step.label}</span>
                     <span aria-label={`${step.progress}% complete`}>
                       {step.progress}%
@@ -398,7 +398,7 @@ export function BentoGridBlock() {
                   <div className="flex items-center gap-3">
                     <Badge
                       variant="outline"
-                      className="w-fit rounded-full border-border/50 bg-background/70 px-3 py-1 text-xs uppercase tracking-[0.2em] text-foreground/70"
+                      className="w-fit rounded-full border-border/50 bg-background/70 px-3 py-1 text-xs text-foreground/70"
                     >
                       Procurement AI
                     </Badge>
@@ -421,7 +421,7 @@ export function BentoGridBlock() {
                     Smart demand forecasting
                   </h3>
                   <p className="max-w-md text-sm text-foreground/70 md:text-base">
-                    Our AI predicts when pools will fill and suggests the optimal time to join 
+                    Our AI predicts when pools will fill and suggests the optimal time to join
                     based on historical market data and supplier availability.
                   </p>
                 </div>
@@ -430,7 +430,7 @@ export function BentoGridBlock() {
                     {["Predictive", "Optimized", "Real-time"].map((label) => (
                       <span
                         key={label}
-                        className="rounded-full bg-background/80 px-3 py-1 uppercase tracking-[0.18em]"
+                        className="rounded-full bg-background/80 px-3 py-1"
                       >
                         {label}
                       </span>
@@ -456,7 +456,7 @@ export function BentoGridBlock() {
             <div className="space-y-3">
               <Badge
                 variant="outline"
-                className="w-fit rounded-full border-border/50 bg-background/70 px-3 py-1 text-xs uppercase tracking-[0.2em] text-foreground/60"
+                className="w-fit rounded-full border-border/50 bg-background/70 px-3 py-1 text-xs text-foreground/60"
               >
                 Success Stories
               </Badge>
@@ -464,7 +464,7 @@ export function BentoGridBlock() {
                 Real impact for local manufacturing
               </h3>
               <p className="text-sm text-foreground/70 md:text-base">
-                See how small factories are increasing their margins by over 15% 
+                See how small factories are increasing their margins by over 15%
                 just by changing how they source their core materials.
               </p>
             </div>

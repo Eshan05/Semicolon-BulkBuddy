@@ -63,7 +63,7 @@ export function ContactFormSection() {
           transition={{ duration: 0.5 }}
           className="space-y-4"
         >
-          <span className="text-xs uppercase tracking-[0.25em] text-foreground/60">
+          <span className="text-xs text-foreground/60">
             Contact
           </span>
           <h2 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
@@ -93,7 +93,7 @@ export function ContactFormSection() {
             >
               <motion.div
                 variants={iconVariants}
-                className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-background/50 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-foreground/70 backdrop-blur"
+                className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-background/50 px-4 py-1.5 text-xs text-foreground/70 backdrop-blur"
                 aria-hidden="true"
               >
                 <span className="h-2 w-2 rounded-full bg-primary/80" />
@@ -147,7 +147,7 @@ export function ContactFormSection() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="name"
-                    className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60"
+                    className="text-xs font-semibold text-foreground/60"
                   >
                     Full Name
                   </Label>
@@ -168,7 +168,7 @@ export function ContactFormSection() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="email"
-                    className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60"
+                    className="text-xs font-semibold text-foreground/60"
                   >
                     Email
                   </Label>
@@ -197,7 +197,7 @@ export function ContactFormSection() {
               <div className="space-y-2">
                 <Label
                   htmlFor="phone"
-                  className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60"
+                  className="text-xs font-semibold text-foreground/60"
                 >
                   Phone Number
                 </Label>
@@ -220,7 +220,7 @@ export function ContactFormSection() {
               <div className="space-y-2">
                 <Label
                   htmlFor="message"
-                  className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60"
+                  className="text-xs font-semibold text-foreground/60"
                 >
                   What materials do you buy?
                 </Label>

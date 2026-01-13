@@ -133,7 +133,7 @@ function MetricCard({ label, value, change, trend, icon }: MetricCardProps) {
         </div>
 
         <div className="space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-foreground/40">
+          <p className="text-xs font-semibold text-foreground/40">
             {label}
           </p>
           <p className="text-2xl font-semibold tracking-tight text-foreground">
@@ -166,7 +166,7 @@ function ChartCard({
       <div className="relative space-y-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-foreground">
+            <h3 className="text-sm font-semibold text-foreground">
               {title}
             </h3>
             <p className="text-xs text-foreground/60">{description}</p>
@@ -268,7 +268,7 @@ function DetailedCard({ title, items }: DetailedCardProps) {
       <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.04] via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 -z-10" />
 
       <div className="relative space-y-4">
-        <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-foreground">
+        <h3 className="text-sm font-semibold text-foreground">
           {title}
         </h3>
 
@@ -320,7 +320,7 @@ function DashboardHeader() {
         <div className="space-y-2">
           <Badge
             variant="outline"
-            className="inline-flex items-center gap-2 rounded-full border-border/50 bg-background/55 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-foreground/70 backdrop-blur"
+            className="inline-flex items-center gap-2 rounded-full border-border/50 bg-background/55 px-4 py-1.5 text-xs text-foreground/70 backdrop-blur"
             aria-label="Dashboard status: Live"
           >
             <span
@@ -334,7 +334,7 @@ function DashboardHeader() {
             Real-time Pool Activity
           </h1>
           <p className="max-w-2xl text-foreground/70">
-            Watch prices drop in real-time as more SMEs join active pools. 
+            Watch prices drop in real-time as more SMEs join active pools.
             Our dynamic pricing engine automatically negotiates the best bulk rates.
           </p>
         </div>

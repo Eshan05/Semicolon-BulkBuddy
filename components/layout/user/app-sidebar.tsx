@@ -56,21 +56,6 @@ const data = {
       url: "/dashboard",
       icon: CommandIcon,
     },
-    {
-      title: "Exercises",
-      url: "/event",
-      icon: PersonStanding,
-    },
-    {
-      title: "Symptom Search",
-      url: "/support",
-      icon: Bot,
-    },
-    {
-      title: "Medicine Finder",
-      url: "/faqs",
-      icon: BookOpen,
-    },
   ],
   projects: [
     {

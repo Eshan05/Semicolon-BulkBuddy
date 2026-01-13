@@ -94,7 +94,7 @@ export default function PublicNavbar() {
           <div className="flex-1 flex items-center">
             <Link href="/" className="flex items-center gap-2">
               <Logo />
-              <span className="font-bold text-xl tracking-tight text-foreground">BulkBuddy</span>
+              <span className="font-bold text-xl text-foreground">BulkBuddy</span>
             </Link>
           </div>
 
@@ -146,7 +146,7 @@ export default function PublicNavbar() {
                   <header className="flex items-center justify-between px-4">
                     <div className="flex items-center gap-2">
                       <Logo />
-                      <span className="font-bold text-foreground text-2xl tracking-tight">BulkBuddy</span>
+                      <span className="font-bold text-foreground text-2xl">BulkBuddy</span>
                     </div>
                     <DrawerClose render={<Button className="p-2 rounded-md" size={'icon'} variant={'ghost'} />}>
                       <XIcon />
