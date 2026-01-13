@@ -8,6 +8,7 @@ import { LuFingerprint as Fingerprint } from "react-icons/lu"
 import { toast } from "sonner"
 import { authClient as client } from "@/lib/auth-client"
 import { LuLoader as Loader2 } from "react-icons/lu"
+import type { Passkey } from "@better-auth/passkey"
 
 export function AddPasskeyInline() {
   const [isOpen, setIsOpen] = useState(false)
@@ -66,7 +67,7 @@ export function PasskeysPanel({ className }: { className?: string }) {
         <div className="text-sm text-muted-foreground">Loading passkeys...</div>
       ) : data && data.length > 0 ? (
         <div className="grid gap-2">
-          {data.map((pk: any) => (
+          {data.map((pk: Passkey) => (
             <div key={pk.id} className="flex items-center justify-between gap-2 p-2 rounded-md hover:bg-gray-50 dark:hover:bg-slate-800">
               <div className="flex items-center gap-3">
                 <Fingerprint />

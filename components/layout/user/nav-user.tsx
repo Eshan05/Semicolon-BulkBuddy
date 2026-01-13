@@ -99,30 +99,30 @@ export function NavUser({
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={session?.user.image || undefined} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">{user.name.split(' ').map(n => n[0]).join('').toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <header className="truncate font-medium flex-center-1"><span>{user.name}</span> <div className="flex items-center">{user.emailVerified ? (
-                    <span className="inline-flex items-center gap-1 rounded-full dark:text-green-100 text-green-800">
-                      <ShieldCheck size={12} />
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full dark:text-yellow-100 text-yellow-800">
-                      <ShieldOff size={10} />
-                    </span>
-                  )}
-                  </div></header>
-                  <span className="truncate text-xs">{user.email}</span>
-
-                </div>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    <AvatarImage src={session?.user.image || undefined} alt={user.name} />
+                    <AvatarFallback className="rounded-lg">{user.name.split(' ').map(n => n[0]).join('').toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <header className="truncate font-medium flex-center-1"><span>{user.name}</span> <div className="flex items-center">{user.emailVerified ? (
+                      <span className="inline-flex items-center gap-1 rounded-full dark:text-green-100 text-green-800">
+                        <ShieldCheck size={12} />
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full dark:text-yellow-100 text-yellow-800">
+                        <ShieldOff size={10} />
+                      </span>
+                    )}
+                    </div></header>
+                    <span className="truncate text-xs">{user.email}</span>
+
+                  </div>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
               <SessionsItem session={session} />
               <PasskeysItem />
               {session?.user.twoFactorEnabled && <TwoFaScanItem />}
@@ -130,10 +130,14 @@ export function NavUser({
               <ChangePassword />
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <NotificationsItem />
+            <DropdownMenuGroup>
+              <NotificationsItem />
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            {!user.emailVerified && <VerifyEmailItem email={user.email} />}
-            <SignOutItem />
+            <DropdownMenuGroup>
+              {!user.emailVerified && <VerifyEmailItem email={user.email} />}
+              <SignOutItem />
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
 
