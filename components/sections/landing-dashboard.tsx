@@ -40,35 +40,35 @@ interface DetailedCardProps {
 // ============================================================================
 
 const USER_GROWTH_DATA = [
-  { name: "Week 1", value: 2400 },
-  { name: "Week 2", value: 3210 },
-  { name: "Week 3", value: 2290 },
-  { name: "Week 4", value: 2000 },
-  { name: "Week 5", value: 2181 },
-  { name: "Week 6", value: 2500 },
-  { name: "Week 7", value: 2100 },
-  { name: "Week 8", value: 2200 },
-  { name: "Week 9", value: 2290 },
-  { name: "Week 10", value: 2000 },
-  { name: "Week 11", value: 2181 },
-  { name: "Week 12", value: 2500 },
-  { name: "Week 13", value: 2100 },
+  { name: "Week 1", value: 12.5 },
+  { name: "Week 2", value: 12.2 },
+  { name: "Week 3", value: 11.8 },
+  { name: "Week 4", value: 11.5 },
+  { name: "Week 5", value: 11.0 },
+  { name: "Week 6", value: 10.4 },
+  { name: "Week 7", value: 10.1 },
+  { name: "Week 8", value: 9.8 },
+  { name: "Week 9", value: 9.5 },
+  { name: "Week 10", value: 9.2 },
+  { name: "Week 11", value: 8.9 },
+  { name: "Week 12", value: 8.5 },
+  { name: "Week 13", value: 8.2 },
 ];
 
 const REVENUE_TREND_DATA = [
-  { name: "Week 1", value: 4000 },
-  { name: "Week 2", value: 3000 },
-  { name: "Week 3", value: 2000 },
-  { name: "Week 4", value: 2780 },
-  { name: "Week 5", value: 1890 },
-  { name: "Week 6", value: 2390 },
-  { name: "Week 7", value: 3490 },
-  { name: "Week 8", value: 4000 },
-  { name: "Week 9", value: 3500 },
-  { name: "Week 10", value: 4200 },
-  { name: "Week 11", value: 3800 },
-  { name: "Week 12", value: 4500 },
-  { name: "Week 13", value: 4100 },
+  { name: "Week 1", value: 450 },
+  { name: "Week 2", value: 520 },
+  { name: "Week 3", value: 610 },
+  { name: "Week 4", value: 750 },
+  { name: "Week 5", value: 890 },
+  { name: "Week 6", value: 1100 },
+  { name: "Week 7", value: 1350 },
+  { name: "Week 8", value: 1600 },
+  { name: "Week 9", value: 1850 },
+  { name: "Week 10", value: 2100 },
+  { name: "Week 11", value: 2400 },
+  { name: "Week 12", value: 2800 },
+  { name: "Week 13", value: 3200 },
 ];
 
 // ============================================================================
@@ -307,104 +307,6 @@ function DetailedCard({ title, items }: DetailedCardProps) {
   );
 }
 
-// Dashboard Navigation Component
-function DashboardNav() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const navItems = [
-    { label: "Overview", icon: BarChart3 },
-    { label: "Activity", icon: Activity },
-    { label: "Users", icon: Users },
-    { label: "Analytics", icon: TrendingUp },
-    { label: "History", icon: Clock },
-  ];
-
-  return (
-    <motion.nav
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="border-b border-border/40 bg-background/40 backdrop-blur-md"
-      role="navigation"
-      aria-label="Main dashboard navigation"
-    >
-      <div className="mx-auto max-w-7xl px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="text-xl font-semibold text-foreground tracking-tight">
-            Dashboard
-          </div>
-
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 hover:bg-background/60 rounded-lg transition-colors"
-            aria-label="Toggle navigation menu"
-            aria-expanded={isOpen}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-
-          {/* Desktop nav */}
-          <div
-            className="hidden md:flex gap-1"
-            role="menubar"
-            aria-label="Navigation tabs"
-          >
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Button
-                  key={item.label}
-                  variant="ghost"
-                  size="sm"
-                  className="gap-2 text-foreground/70 hover:text-foreground hover:bg-background/50 rounded-lg"
-                  role="menuitem"
-                  aria-current={item.label === "Overview" ? "page" : undefined}
-                >
-                  <Icon className="h-4 w-4" aria-hidden="true" />
-                  <span className="text-xs uppercase tracking-[0.1em]">
-                    {item.label}
-                  </span>
-                </Button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Mobile nav */}
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mt-4 flex flex-col gap-2 md:hidden"
-            role="menu"
-            aria-label="Mobile navigation menu"
-          >
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Button
-                  key={item.label}
-                  variant="ghost"
-                  size="sm"
-                  className="justify-start gap-2 text-foreground/70 hover:text-foreground hover:bg-background/50"
-                  role="menuitem"
-                >
-                  <Icon className="h-4 w-4" aria-hidden="true" />
-                  <span className="text-xs uppercase tracking-[0.1em]">
-                    {item.label}
-                  </span>
-                </Button>
-              );
-            })}
-          </motion.div>
-        )}
-      </div>
-    </motion.nav>
-  );
-}
-
 // Dashboard Header Component
 function DashboardHeader() {
   return (
@@ -425,15 +327,15 @@ function DashboardHeader() {
               className="h-2 w-2 rounded-full bg-emerald-500"
               aria-hidden="true"
             />
-            Live Dashboard
+            Live Procurement Engine
           </Badge>
 
           <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-            Performance Overview
+            Real-time Pool Activity
           </h1>
           <p className="max-w-2xl text-foreground/70">
-            Monitor your application metrics, user activity, and system health
-            in real-time with detailed insights and historical data trends.
+            Watch prices drop in real-time as more SMEs join active pools. 
+            Our dynamic pricing engine automatically negotiates the best bulk rates.
           </p>
         </div>
 
@@ -482,33 +384,33 @@ function DashboardGrid() {
         role="presentation"
       >
         <MetricCard
-          label="Total Users"
-          value="24,582"
-          change="+12.5%"
+          label="Active Pools"
+          value="142"
+          change="+18%"
           trend="up"
           icon={<Users className="h-6 w-6 text-primary" aria-hidden="true" />}
         />
         <MetricCard
-          label="Active Sessions"
-          value="8,924"
-          change="+8.2%"
+          label="Total Savings"
+          value="$1.2M"
+          change="+22.4%"
           trend="up"
-          icon={<Zap className="h-6 w-6 text-primary" aria-hidden="true" />}
+          icon={<DollarSign className="h-6 w-6 text-primary" aria-hidden="true" />}
         />
         <MetricCard
-          label="Conversion Rate"
-          value="3.47%"
-          change="-1.3%"
-          trend="down"
+          label="Avg. Price Drop"
+          value="18.5%"
+          change="+2.3%"
+          trend="up"
           icon={<Percent className="h-6 w-6 text-primary" aria-hidden="true" />}
         />
         <MetricCard
-          label="Revenue"
-          value="$47,320"
-          change="+24.8%"
+          label="Orders Processed"
+          value="4,820"
+          change="+15.2%"
           trend="up"
           icon={
-            <DollarSign className="h-6 w-6 text-primary" aria-hidden="true" />
+            <Zap className="h-6 w-6 text-primary" aria-hidden="true" />
           }
         />
       </motion.div>
@@ -520,15 +422,15 @@ function DashboardGrid() {
         role="presentation"
       >
         <ChartCard
-          title="User Growth"
-          description="Last 13 weeks activity"
+          title="Dynamic Price Trend ($/kg)"
+          description="Avg. cost across all active steel pools"
           data={USER_GROWTH_DATA}
           dataKey="value"
           height={300}
         />
         <ChartCard
-          title="Revenue Trend"
-          description="Weekly revenue breakdown"
+          title="Aggregated Volume (Tons)"
+          description="Weekly raw material volume grouped"
           data={REVENUE_TREND_DATA}
           dataKey="value"
           height={300}
@@ -542,27 +444,27 @@ function DashboardGrid() {
         role="presentation"
       >
         <DetailedCard
-          title="Top Pages"
+          title="Hottest Pools"
           items={[
-            { label: "Home", value: "12,543", subtitle: "visits" },
-            { label: "Dashboard", value: "8,324", subtitle: "visits" },
-            { label: "Settings", value: "4,128", subtitle: "visits" },
+            { label: "Grade A Steel", value: "92%", subtitle: "to threshold" },
+            { label: "Polymer Resin", value: "85%", subtitle: "to threshold" },
+            { label: "Aluminum Extrusions", value: "78%", subtitle: "to threshold" },
           ]}
         />
         <DetailedCard
-          title="Browser Usage"
+          title="Regional Activity"
           items={[
-            { label: "Chrome", value: "68.5%", subtitle: "market share" },
-            { label: "Safari", value: "18.2%", subtitle: "market share" },
-            { label: "Firefox", value: "9.3%", subtitle: "market share" },
+            { label: "Industrial Hub A", value: "45 Pools", subtitle: "High activity" },
+            { label: "West Coast Cluster", value: "28 Pools", subtitle: "Growing" },
+            { label: "Midwest Logistics", value: "19 Pools", subtitle: "Steady" },
           ]}
         />
         <DetailedCard
-          title="Recent Activity"
+          title="Recent Fulfillments"
           items={[
-            { label: "Login Spike", value: "Now", subtitle: "2.5k users" },
-            { label: "Feature Update", value: "2h ago", subtitle: "deployed" },
-            { label: "Bug Fix", value: "5h ago", subtitle: "resolved" },
+            { label: "Steel Pool #842", value: "$42k", subtitle: "22% Saved" },
+            { label: "Copper Pool #102", value: "$18k", subtitle: "15% Saved" },
+            { label: "Paper Pool #305", value: "$9k", subtitle: "12% Saved" },
           ]}
         />
       </motion.div>
@@ -576,7 +478,7 @@ function DashboardGrid() {
 
 export function DashboardPageLanding() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-background">
+    <div className="relative overflow-hidden">
       {/* Glassmorphism background blobs */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
         <div className="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-foreground/[0.035] blur-[140px]" />
@@ -584,16 +486,13 @@ export function DashboardPageLanding() {
         <div className="absolute top-1/2 left-1/4 h-[400px] w-[400px] rounded-full bg-primary/[0.02] blur-[150px]" />
       </div>
 
-      {/* Navigation */}
-      <DashboardNav />
-
       {/* Main Content */}
-      <div className="relative px-6 py-8 lg:py-12">
+      <div className="relative px-6">
         <div className="mx-auto max-w-7xl">
           <DashboardHeader />
           <DashboardGrid />
         </div>
       </div>
-    </main>
+    </div>
   );
 }

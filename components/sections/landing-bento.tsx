@@ -47,34 +47,34 @@ const avatarProfiles: AvatarProfile[] = [
 
 const keyMetrics: Metric[] = [
   {
-    label: "Project satisfaction",
-    value: "98%",
-    caption: "Last quarter",
+    label: "Avg. Savings",
+    value: "24%",
+    caption: "Per order",
   },
   {
-    label: "Delivery cadence",
-    value: "2.4x",
-    caption: "Faster",
+    label: "Pool Velocity",
+    value: "4.2d",
+    caption: "Avg. fill time",
   },
   {
-    label: "Retention rate",
-    value: "92%",
-    caption: "After 6 months",
+    label: "Supplier Reach",
+    value: "500+",
+    caption: "Verified bulk",
   },
 ];
 
 const motionProcess: ProcessStep[] = [
   {
-    label: "Ideate & storyboard",
-    progress: 82,
+    label: "Demand Aggregation",
+    progress: 95,
   },
   {
-    label: "Motion exploration",
-    progress: 64,
+    label: "Supplier Bidding",
+    progress: 88,
   },
   {
-    label: "Polish & delivery",
-    progress: 91,
+    label: "Logistics Sync",
+    progress: 92,
   },
 ];
 
@@ -123,7 +123,7 @@ const cardVariants: Variants = {
 
 export function BentoGridBlock() {
   return (
-    <section className="relative w-full overflow-hidden bg-background">
+    <div className="relative w-full overflow-hidden">
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute left-1/2 top-0 h-130 w-130 -translate-x-1/2 rounded-full bg-foreground/[0.035] blur-[140px]" />
         <div className="absolute bottom-0 right-0 h-90 w-90 rounded-full bg-primary/[0.035] blur-[120px]" />
@@ -142,19 +142,18 @@ export function BentoGridBlock() {
             variant="outline"
             className="inline-flex items-center gap-2 rounded-full border-border/50 bg-background/60 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-foreground/70 backdrop-blur"
           >
-            UI TripleD
+            THE BULK HACK
             <span
               className="h-2 w-2 rounded-full bg-primary"
               aria-hidden="true"
             />
           </Badge>
           <h2 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl lg:text-5xl">
-            Bento storytelling built for modern motion systems
+            Aggregate. Negotiate. Dominate.
           </h2>
           <p className="max-w-2xl text-base text-foreground/70 md:text-lg">
-            Pair narrative, metrics, and cinematic visuals inside a responsive
-            layout designed around Framer Motion micro-interactions and
-            accessible navigation.
+            BulkBuddy uses advanced geographical clustering and real-time demand 
+            aggregation to unlock enterprise-grade pricing for local manufacturers.
           </p>
         </motion.header>
 
@@ -183,7 +182,7 @@ export function BentoGridBlock() {
             transition={{ duration: 0.2 }}
             className="group relative col-span-1 flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-border/40 bg-background/70 p-6 backdrop-blur transition-all hover:border-border/60 hover:shadow-lg sm:col-span-2 lg:row-span-2"
             role="article"
-            aria-label="Featured case study"
+            aria-label="Dynamic Pricing Engine"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.05] via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             <div className="relative flex h-full flex-col justify-between">
@@ -192,15 +191,14 @@ export function BentoGridBlock() {
                   variant="secondary"
                   className="w-fit rounded-full border-border/40 bg-background/80 px-3 py-1 text-xs uppercase tracking-[0.2em] text-foreground/70"
                 >
-                  Featured case study
+                  Dynamic Pricing Engine
                 </Badge>
                 <h3 className="text-2xl font-semibold leading-tight text-foreground md:text-3xl">
-                  Designing delightful product experiences
+                  Watch the price drop as the pool grows
                 </h3>
                 <p className="text-sm text-foreground/70 md:text-base">
-                  We choreograph micro-interactions and depth cues that elevate
-                  usability across every product surface-without sacrificing
-                  performance or accessibility.
+                  As more SMEs join a pool, our algorithm renegotiates with suppliers in real-time. 
+                  Every new kilogram added to the pool lowers the price for everyone involved.
                 </p>
               </div>
               <div className="mt-8 flex items-center justify-between gap-4">
@@ -228,7 +226,7 @@ export function BentoGridBlock() {
                   className="group/cta gap-2 rounded-lg bg-background/70 px-4 py-2 text-sm text-foreground hover:bg-background/80"
                   aria-label="View the featured case study"
                 >
-                  View story
+                  See Pools
                   <ArrowUpRight className="h-4 w-4 transition-transform group-hover/cta:translate-x-1" />
                 </Button>
               </div>
@@ -284,12 +282,12 @@ export function BentoGridBlock() {
             transition={{ duration: 0.2 }}
             className="group relative col-span-1 overflow-hidden rounded-2xl border border-border/40 bg-background/70 backdrop-blur hover:border-border/60 hover:shadow-lg sm:col-span-2 lg:row-span-3"
             role="article"
-            aria-label="Behind the scenes studio imagery"
+            aria-label="Geographical Clusters"
           >
             <div className="absolute inset-0">
               <img
-                src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80"
-                alt="Designer workstation lit with cinematic lighting"
+                src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=1200&q=80"
+                alt="Industrial factory cluster aerial view"
                 className="h-full w-full object-cover opacity-80"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
@@ -299,18 +297,17 @@ export function BentoGridBlock() {
                 variant="outline"
                 className="w-fit rounded-full border-border/60 bg-background/80 px-3 py-1 text-xs uppercase tracking-[0.2em] text-foreground/70"
               >
-                Behind the scenes
+                Geographical Clusters
               </Badge>
               <h3 className="text-xl font-semibold tracking-tight text-foreground md:text-2xl">
-                Immersive motion prototypes with cinematic lighting
+                Grouped by location for efficient logistics
               </h3>
               <p className="max-w-sm text-sm text-foreground/70 md:text-base">
-                Layered light, shadow, and depth cues help teams experience the
-                product as it will ship-well before the first line of production
-                code.
+                We group businesses that are close to each other. This reduces last-mile delivery costs 
+                and allows for easy split-shipment fulfillment.
               </p>
               <div className="flex flex-wrap gap-2 pt-2">
-                {["Micro-interactions", "Depth cues", "Narrative flow"].map(
+                {["Regional Hubs", "Shared Logistics", "Local Growth"].map(
                   (tag) => (
                     <span
                       key={tag}
@@ -330,22 +327,21 @@ export function BentoGridBlock() {
             transition={{ duration: 0.2 }}
             className="group col-span-1 flex h-full flex-col rounded-2xl border border-border/40 bg-background/70 p-6 backdrop-blur transition-all hover:border-border/60 hover:shadow-lg sm:col-span-2 lg:row-span-2"
             role="article"
-            aria-label="Motion sprint process overview"
+            aria-label="Verified Supplier Network"
           >
             <div className="space-y-4">
               <Badge
                 variant="outline"
                 className="w-fit rounded-full border-primary/50 bg-background/70 px-3 py-1 text-xs uppercase tracking-[0.2em] text-primary"
               >
-                Motion sprint
+                Verified Suppliers
               </Badge>
               <h3 className="text-xl font-semibold tracking-tight text-foreground md:text-2xl">
-                From first sketch to polished prototype in seven days
+                Direct access to Tier-1 bulk suppliers
               </h3>
               <p className="text-sm text-foreground/70 md:text-base">
-                We compress discovery, exploration, and refinement into a
-                focused week-long sprint so your team can feel the flow of the
-                final experience sooner.
+                Skip the middlemen. BulkBuddy connects your pool directly to major manufacturers 
+                and wholesalers who usually only deal with corporate giants.
               </p>
             </div>
             <div className="mt-6 space-y-4">
@@ -376,10 +372,10 @@ export function BentoGridBlock() {
             <Button
               variant="ghost"
               className="mt-8 w-fit gap-2 px-0 text-sm text-primary hover:text-primary/90"
-              aria-label="Play sprint walkthrough video"
+              aria-label="View Supplier Network"
             >
               <PlayCircle className="h-4 w-4" aria-hidden="true" />
-              Play walkthrough
+              Supplier Network
             </Button>
           </motion.article>
 
@@ -389,12 +385,12 @@ export function BentoGridBlock() {
             transition={{ duration: 0.2 }}
             className="group col-span-1 flex h-full flex-col overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-primary/15 via-background/70 to-background/90 p-0 backdrop-blur transition-all hover:border-border/60 hover:shadow-lg sm:col-span-2"
             role="article"
-            aria-label="Motion showcase video"
+            aria-label="Procurement AI"
           >
             <div className="relative h-full">
               <img
-                src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=1200&h=600&fit=crop&q=80"
-                alt="Motion design workspace with monitors"
+                src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&h=600&fit=crop&q=80"
+                alt="AI circuit board concept"
                 className="absolute inset-0 h-full w-full object-cover opacity-30 transition-opacity duration-500 group-hover:opacity-40"
               />
               <div className="relative flex h-full flex-col justify-between bg-gradient-to-br from-background/90 via-background/70 to-transparent p-6 md:p-8">
@@ -404,7 +400,7 @@ export function BentoGridBlock() {
                       variant="outline"
                       className="w-fit rounded-full border-border/50 bg-background/70 px-3 py-1 text-xs uppercase tracking-[0.2em] text-foreground/70"
                     >
-                      Motion showcase
+                      Procurement AI
                     </Badge>
                     <motion.div
                       animate={{ scale: [1, 1.1, 1] }}
@@ -415,35 +411,34 @@ export function BentoGridBlock() {
                       }}
                       className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/20"
                     >
-                      <PlayCircle
+                      <Sparkles
                         className="h-4 w-4 text-primary"
                         aria-hidden="true"
                       />
                     </motion.div>
                   </div>
                   <h3 className="text-xl font-semibold tracking-tight text-foreground md:text-2xl">
-                    Watch our latest animation breakdown
+                    Smart demand forecasting
                   </h3>
                   <p className="max-w-md text-sm text-foreground/70 md:text-base">
-                    A three-minute deep dive into timing curves, coordinated
-                    transitions, and how we translate component choreography
-                    into production-ready systems.
+                    Our AI predicts when pools will fill and suggests the optimal time to join 
+                    based on historical market data and supplier availability.
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-3 pt-4 text-xs text-foreground/60">
                   <div className="flex flex-wrap gap-2">
-                    {reelStats.map((stat) => (
+                    {["Predictive", "Optimized", "Real-time"].map((label) => (
                       <span
-                        key={stat.label}
+                        key={label}
                         className="rounded-full bg-background/80 px-3 py-1 uppercase tracking-[0.18em]"
                       >
-                        {stat.label}
+                        {label}
                       </span>
                     ))}
                   </div>
                   <Button size="sm" className="gap-2">
-                    Watch now
-                    <PlayCircle className="h-4 w-4" aria-hidden="true" />
+                    Try AI Demo
+                    <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </div>
               </div>
@@ -456,22 +451,21 @@ export function BentoGridBlock() {
             transition={{ duration: 0.2 }}
             className="group col-span-1 flex h-full flex-col rounded-2xl border border-border/40 bg-background/70 p-6 backdrop-blur transition-all hover:border-border/60 hover:shadow-lg sm:col-span-2"
             role="article"
-            aria-label="Visual research gallery"
+            aria-label="Success Stories"
           >
             <div className="space-y-3">
               <Badge
                 variant="outline"
                 className="w-fit rounded-full border-border/50 bg-background/70 px-3 py-1 text-xs uppercase tracking-[0.2em] text-foreground/60"
               >
-                Visual research
+                Success Stories
               </Badge>
               <h3 className="text-lg font-semibold tracking-tight text-foreground md:text-xl">
-                Capturing texture, light, and pace for new explorations
+                Real impact for local manufacturing
               </h3>
               <p className="text-sm text-foreground/70 md:text-base">
-                A snapshot of the references that steer our motion language and
-                narrative rhythm, curated for both product and marketing
-                surfaces.
+                See how small factories are increasing their margins by over 15% 
+                just by changing how they source their core materials.
               </p>
             </div>
             <div className="mt-6 grid grid-cols-2 gap-3">
@@ -491,14 +485,14 @@ export function BentoGridBlock() {
             <Button
               variant="ghost"
               className="mt-6 w-fit gap-2 px-0 text-sm text-primary hover:text-primary/90"
-              aria-label="Open the visual inspiration archive"
+              aria-label="Read all stories"
             >
-              Open inspiration archive
+              Read all stories
               <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
             </Button>
           </motion.article>
         </motion.div>
       </div>
-    </section>
+    </div>
   );
 }

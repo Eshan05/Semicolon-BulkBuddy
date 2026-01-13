@@ -8,33 +8,31 @@ import { GlowyWavesHero } from "@/components/sections/landing-hero";
 
 export default function Home() {
   return (
-    <div className="mx-auto px-4 py-12 md:px-6 lg:px-8">
+    <main className="relative min-h-screen bg-background">
       <PublicNavbar />
-      <div className="mx-auto space-y-12">
-        <section>
+      <div className="flex flex-col">
+        <section id="hero">
           <GlowyWavesHero />
         </section>
 
-        <section>
+        <section id="how-it-works" className="py-12 md:py-20">
           <DashboardPageLanding />
         </section>
 
-        <section>
+        <section id="features" className="py-12 md:py-20 bg-muted/30">
           <BentoGridBlock />
         </section>
 
-        <section>
+        <section id="contact" className="py-12 md:py-20">
           <ContactFormSection />
         </section>
 
-        <section>
+        <section id="faq" className="py-12 md:py-20 bg-muted/30">
           <FAQAccordionBlock />
         </section>
 
-        <section>
-          <FooterBlock />
-        </section>
+        <FooterBlock />
       </div>
-    </div>
+    </main>
   )
 }

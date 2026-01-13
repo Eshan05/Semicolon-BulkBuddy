@@ -21,10 +21,10 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Home', href: '/', icon: TbHome },
-  { label: 'How it works', href: '/how-it-works', icon: TbWorldQuestion },
-  { label: 'Health Tools', href: '/tools', icon: TbVideo },
-  { label: 'About', href: '/about', icon: TbBuildingSkyscraper },
-  { label: 'Contact', href: '/contact', icon: TbMailShare },
+  { label: 'How it works', href: '#how-it-works', icon: TbWorldQuestion },
+  { label: 'Live Pools', href: '/pools', icon: TbVideo },
+  { label: 'Verified Suppliers', href: '/suppliers', icon: TbBuildingSkyscraper },
+  { label: 'Contact', href: '#contact', icon: TbMailShare },
 ];
 
 export default function PublicNavbar() {
@@ -82,31 +82,31 @@ export default function PublicNavbar() {
   };
 
   const baseNavContainerClasses = "flex h-16 md:h-11 items-center justify-between py-8 px-4 md:px-8 transition-colors duration-300";
-  const activeNavContainerStyles = "bg-white";
-  const inactiveNavContainerStyles = "bg-white";
+  const activeNavContainerStyles = "bg-white/80 backdrop-blur-md border-b border-border/40";
+  const inactiveNavContainerStyles = "bg-transparent";
 
   return (
     <header
-      className={`w-full bg-white mx-auto fixed top-0 left-0 right-0 z-30 transition-transform duration-300 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+      className={`w-full mx-auto fixed top-0 left-0 right-0 z-30 transition-all duration-300 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
       <div className={`${baseNavContainerClasses} max-w-[1440px] mx-auto ${applyActiveStyles ? activeNavContainerStyles : inactiveNavContainerStyles}`}>
         <div className="w-full flex items-center">
           {/* Left: logo */}
           <div className="flex-1 flex items-center">
             <Link href="/" className="flex items-center gap-2">
               <Logo />
-              <span className="font-bold text-lg text-black">PHT</span>
+              <span className="font-bold text-xl tracking-tight text-foreground">BulkBuddy</span>
             </Link>
           </div>
 
-          <div className="hidden md:flex flex-1 justify-center">
+          <div className="hidden md:flex flex-[2] justify-center">
             <nav className="flex items-center gap-6">
               {navItems.map((item) => (
                 <EButton
                   effect={'hoverUnderline'}
                   variant={'link'}
-                  className={'flex items-center px-0 font-normal cursor-pointer'}
+                  className={'flex items-center px-0 font-medium cursor-pointer'}
                   key={item.label}
-                  render={<Link href={item.href} className="lg:!text-base text-gray-600 hover:text-black" />}
+                  render={<Link href={item.href} className="lg:!text-sm text-foreground/60 hover:text-foreground transition-colors" />}
                 >
                   {item.label}
                 </EButton>
@@ -115,18 +115,18 @@ export default function PublicNavbar() {
           </div>
 
           {/* Right: actions */}
-          <div className="flex-1 items-center justify-end gap-2 hidden md:flex">
+          <div className="flex-1 items-center justify-end gap-3 hidden md:flex">
             {session ? (
               <Button render={<Link href="/dashboard" className="text-sm font-medium" />}>
                 Dashboard
               </Button>
             ) : (
               <>
-                <Button variant={'secondary'} render={<Link href="/sign-in" className="text-sm" />}>
+                <Button variant={'ghost'} className="text-sm font-medium" render={<Link href="/sign-in" />}>
                   Login
                 </Button>
-                <Button render={<Link href="/sign-up" className=" text-sm font-medium" />}>
-                  Sign up
+                <Button className="rounded-full px-6" render={<Link href="/sign-up" />}>
+                  Join Now
                 </Button>
               </>
             )}
@@ -134,51 +134,49 @@ export default function PublicNavbar() {
 
           <div className="md:hidden ml-2">
             <Drawer open={isMobileOpen} onOpenChange={setIsMobileOpen} shouldScaleBackground setBackgroundColorOnScale={false}>
-              <DrawerTrigger render={<Button aria-label="Open menu" />}>
-                <HiOutlineMenuAlt3 /> Menu
+              <DrawerTrigger render={<Button variant="ghost" size="icon" aria-label="Open menu" />}>
+                <HiOutlineMenuAlt3 className="h-6 w-6" />
               </DrawerTrigger>
               <DrawerContent className=''>
                 <div className="mx-auto w-full max-w-sm py-4">
                   <DrawerHeader className='sr-only'>
-                    <DrawerTitle></DrawerTitle>
-                    <DrawerDescription></DrawerDescription>
+                    <DrawerTitle>Menu</DrawerTitle>
+                    <DrawerDescription>Navigation Links</DrawerDescription>
                   </DrawerHeader>
                   <header className="flex items-center justify-between px-4">
                     <div className="flex items-center gap-2">
                       <Logo />
-                      <span className="font-semibold text-black text-2xl">NabhaCare</span>
+                      <span className="font-bold text-foreground text-2xl tracking-tight">BulkBuddy</span>
                     </div>
                     <DrawerClose render={<Button className="p-2 rounded-md" size={'icon'} variant={'ghost'} />}>
                       <XIcon />
                     </DrawerClose>
                   </header>
-                  <div className="mt-4 px-4 space-y-2">
+                  <div className="mt-8 px-4 space-y-4">
                     {navItems.map((item) => (
-                      <Link key={item.label} href={item.href} className="block text-gray-700 hover:text-black flex-center-2 text-base">
-                        {item.icon && <item.icon className="" />}
+                      <Link key={item.label} href={item.href} onClick={() => setIsMobileOpen(false)} className="block text-foreground/70 hover:text-foreground flex items-center gap-3 text-lg font-medium transition-colors">
+                        {item.icon && <item.icon className="h-5 w-5" />}
                         {item.label}
                       </Link>
                     ))}
 
-                    <footer className="pt-2 border-t border-border">
-                      <div className="flex items-center justify-between mt-3">
-                        <aside className="flex items-center gap-2">
+                    <footer className="pt-6 mt-6 border-t border-border">
+                      <div className="flex flex-col gap-3">
                           {session ? (
-                            <Button render={<Link href="/dashboard" className="text-sm text-gray-600 hover:text-black" />}>
+                            <Button render={<Link href="/dashboard" className="w-full text-center" />}>
                               Dashboard
                             </Button>
                           ) : (
                             <>
-                              <Button variant={'secondary'} render={<Link href="/sign-in" className="text-sm text-gray-600 hover:text-black" />}>
+                              <Button variant={'outline'} className="w-full rounded-xl" render={<Link href="/sign-in" />}>
                                 Sign in
                               </Button>
 
-                              <Button render={<Link href="/sign-up" className="inline-flex items-center px-4 py-2 bg-black text-white rounded-md text-sm font-medium" />}>
-                                Sign up
+                              <Button className="w-full rounded-xl" render={<Link href="/sign-up" />}>
+                                Join BulkBuddy
                               </Button>
                             </>
                           )}
-                        </aside>
                       </div>
                     </footer>
                   </div>

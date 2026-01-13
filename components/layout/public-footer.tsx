@@ -9,27 +9,25 @@ import { Input } from '@/components/ui/input'
 
 const footerLinks = [
   {
-    title: "Product",
-    links: ["Features", "Pricing", "Documentation", "API Reference"],
+    title: "Procurement",
+    links: ["Live Pools", "Supplier Network", "Pricing", "Case Studies"],
   },
   {
     title: "Company",
-    links: ["About Us", "Careers", "Blog", "Press Kit"],
+    links: ["About BulkBuddy", "Our Mission", "Careers", "Newsroom"],
   },
   {
-    title: "Resources",
-    links: ["Community", "Help Center", "Partners", "Status"],
+    title: "Support",
+    links: ["Help Center", "Community", "Partner Portal", "Contact"],
   },
   {
     title: "Legal",
-    links: ["Privacy", "Terms", "Cookie Policy", "Licenses"],
+    links: ["Privacy Policy", "Terms of Service", "Cookie Policy"],
   },
 ];
 
 const socialLinks = [
   { icon: Twitter, label: "Twitter", href: "#" },
-  { icon: Facebook, label: "Facebook", href: "#" },
-  { icon: Instagram, label: "Instagram", href: "#" },
   { icon: Linkedin, label: "LinkedIn", href: "#" },
   { icon: Github, label: "GitHub", href: "#" },
 ];
@@ -93,25 +91,25 @@ export function FooterBlock() {
               transition={{ duration: 0.2 }}
               className="mb-4 inline-flex items-center gap-3"
             >
-              <Card className="rounded-2xl border border-border/60 bg-card/80 px-3 py-1 text-xs uppercase tracking-[0.32em] text-muted-foreground shadow-[0_10px_30px_-20px_rgba(15,23,42,0.8)]">
-                Brand
+              <Card className="rounded-2xl border border-border/60 bg-card/80 px-3 py-1 text-xs font-bold uppercase tracking-[0.32em] text-primary shadow-[0_10px_30px_-20px_rgba(15,23,42,0.8)]">
+                BulkBuddy
               </Card>
               <Badge
                 variant="outline"
                 className="text-xs text-muted-foreground"
               >
-                Since 2018
+                v1.0.0
               </Badge>
             </motion.div>
             <p className="mb-4 max-w-md text-sm text-muted-foreground">
-              Building amazing products with modern technologies. Join us on our
-              journey to create better user experiences.
+              Empowering small and medium enterprises through collective purchasing power. 
+              Join the movement and stop paying retail for your raw materials.
             </p>
 
             {/* Newsletter */}
             <div className="mb-4">
               <p className="mb-2 text-sm font-medium text-foreground">
-                Subscribe to our newsletter
+                Get pool alerts in your inbox
               </p>
               <div className="flex gap-2">
                 <Input
@@ -136,21 +134,21 @@ export function FooterBlock() {
                 className="flex items-center gap-2"
               >
                 <MapPin className="h-4 w-4" aria-hidden />
-                <span>123 Business St, City 12345</span>
+                <span>123 Industrial Way, Tech City</span>
               </motion.div>
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { x: 5 }}
                 className="flex items-center gap-2"
               >
                 <Phone className="h-4 w-4" aria-hidden />
-                <span>+1 (555) 123-4567</span>
+                <span>+1 (555) BULK-BDY</span>
               </motion.div>
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { x: 5 }}
                 className="flex items-center gap-2"
               >
                 <Mail className="h-4 w-4" aria-hidden />
-                <span>hello@example.com</span>
+                <span>partners@bulkbuddy.com</span>
               </motion.div>
             </div>
           </motion.div>
@@ -250,10 +248,7 @@ export function FooterBlock() {
             transition={{ delay: 0.6 }}
             className="flex items-center gap-2 text-sm text-muted-foreground"
           >
-            <span>© 2024 Brand. All rights reserved.</span>
-            <Badge variant="outline" className="text-xs">
-              v1.0.0
-            </Badge>
+            <span>© 2026 BulkBuddy Inc. All rights reserved.</span>
           </motion.div>
 
           {/* Scroll to Top */}
