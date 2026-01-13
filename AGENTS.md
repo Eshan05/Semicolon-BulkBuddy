@@ -47,3 +47,12 @@ Imagine a flow like this (VERY BASIC):
 - Edge Case: Supplier-Buyer Collusion: A supplier and buyer fake-join to manipulate prices for others. Why it matters: Undermines fairness. Mitigation: Audit logs and AI flagging unusual patterns
 
 VERY IMPORTANT: For now it will be single point of contact, AKA one company only have one account, not a proper organization system. Company name / branch should be unique
+
+---
+
+Notes:
+1. Tech Stack - Next.js v16, Tailwind v4, ShadCN, TypeScript, Drizzle, Turso/SQLITE, Vercel, AI SDK, Better-auth, Resend, Zod, Biome, Bun - Tech Stack
+2. I want absolutely perfect, responsive, accessible, and fast UI/UX. No compromises. It should look modern, not 2015
+3. I want to use AI for various parts of the app. From chat moderation, to trust scoring, to smart matching of buyers and suppliers
+4. MVP first. No overengineering. Simple, clean, and functional. Then iterate fast. Just keep in mind to have it be extensible
+5. Backend should be robust, type-safe, secure, and scalable. Always ensure it is featureful and easy to maintain. Should be tested well.

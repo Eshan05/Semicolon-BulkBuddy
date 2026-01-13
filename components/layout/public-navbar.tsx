@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { useSession } from '@/lib/auth-client';
 import Link from 'next/link';
@@ -12,6 +12,7 @@ import { LuX as XIcon } from 'react-icons/lu';
 import { TbBuildingSkyscraper, TbHome, TbMailShare, TbVideo, TbWorldQuestion } from "react-icons/tb";
 import { Logo } from "../common/logo";
 import { EButton } from '../derived/enhanced-button';
+import { cn } from '@/lib/utils';
 
 interface NavItem {
   label: string;
@@ -122,12 +123,12 @@ export default function PublicNavbar() {
               </Button>
             ) : (
               <>
-                <Button variant={'ghost'} className="text-sm font-medium" render={<Link href="/sign-in" />}>
+                <Link href="/sign-in" className={cn(buttonVariants({ variant: "outline", size: "default" }), "text-sm font-medium")}>
                   Login
-                </Button>
-                <Button className="rounded-full px-6" render={<Link href="/sign-up" />}>
+                </Link>
+                <Link href="/sign-up" className={cn(buttonVariants({ size: "default" }), "rounded-full px-4")}>
                   Join Now
-                </Button>
+                </Link>
               </>
             )}
           </div>
@@ -168,13 +169,13 @@ export default function PublicNavbar() {
                           </Button>
                         ) : (
                           <>
-                            <Button variant={'outline'} className="w-full rounded-xl" render={<Link href="/sign-in" />}>
+                            <Link href="/sign-in" className={cn(buttonVariants({ variant: "outline", size: "default" }), "w-full rounded-xl")}>
                               Sign in
-                            </Button>
+                            </Link>
 
-                            <Button className="w-full rounded-xl" render={<Link href="/sign-up" />}>
+                            <Link href="/sign-up" className={cn(buttonVariants({ size: "default" }), "w-full rounded-xl")}>
                               Join BulkBuddy
-                            </Button>
+                            </Link>
                           </>
                         )}
                       </div>
