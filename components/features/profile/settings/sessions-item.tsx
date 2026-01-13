@@ -51,8 +51,8 @@ export default function SessionsItem({ session }: { session: SessionProp }) {
       <CredenzaTrigger
         render={
           <DropdownMenuItem
-            onSelect={(e) => {
-              e.preventDefault();
+            closeOnClick={false}
+            onClick={() => {
               (async () => {
                 try {
                   const r = await fetch("/api/auth/list-sessions", { credentials: "same-origin" });
@@ -64,11 +64,25 @@ export default function SessionsItem({ session }: { session: SessionProp }) {
                 }
               })();
             }}
-          />
+            onSelect={() => {
+              (async () => {
+                try {
+                  const r = await fetch("/api/auth/list-sessions", { credentials: "same-origin" });
+                  const json = await r.json();
+                  setSessions(json || []);
+                } catch (err) {
+                  console.error(err);
+                  toast.error("Failed to load sessions");
+                }
+              })();
+            }}
+          >
+            <Laptop />
+            Manage Sessions
+          </DropdownMenuItem>
         }
       >
-        <Laptop />
-        Manage Sessions
+        <span className="sr-only">Manage Sessions</span>
       </CredenzaTrigger>
       <CredenzaContent>
         <CredenzaHeader>

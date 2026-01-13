@@ -9,7 +9,7 @@ import { LuFingerprint as Fingerprint } from 'react-icons/lu'
 export default function PasskeysItem() {
   return (
     <Credenza>
-      <CredenzaTrigger render={<DropdownMenuItem onSelect={(e) => e.preventDefault()} />}>
+      <CredenzaTrigger render={<DropdownMenuItem closeOnClick={false} onSelect={(e) => e.preventDefault()} />}>
         <Fingerprint />
         Manage Passkeys
       </CredenzaTrigger>
