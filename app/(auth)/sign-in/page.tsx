@@ -1,6 +1,6 @@
-import { Logo } from "@/components/common/logo";
 import { Suspense } from "react";
 import SignIn from "@/components/features/auth/sign-in";
+import { Logo } from "@/components/common/logo";
 
 export default function Page() {
 

@@ -1,15 +1,12 @@
-import PublicNavbar from "@/components/layout/public-navbar";
-
 export const metadata = {
-  title: "PHT | Authentication",
-  description: "Personal Health Tools",
+  title: "BulkBuddy | Authentication",
+  description: "User authentication for BulkBuddy - B2B group buying platform",
 };
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div>
-      <PublicNavbar />
-      <main>{children}</main>
-    </div>
+    <main>
+      {children}
+    </main>
   );
 }
