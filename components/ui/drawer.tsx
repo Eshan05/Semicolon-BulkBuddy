@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
+import { useRender } from "@base-ui/react/use-render"
 
 import { cn } from "@/lib/utils"
 
@@ -12,9 +13,23 @@ function Drawer({
 }
 
 function DrawerTrigger({
+  render,
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Trigger>) {
-  return <DrawerPrimitive.Trigger data-slot="drawer-trigger" {...props} />
+}: React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Trigger> & {
+  render?: useRender.RenderProp<any>
+}) {
+  return (
+    <DrawerPrimitive.Trigger asChild>
+      {useRender({
+        defaultTagName: "button",
+        render,
+        props: {
+          "data-slot": "drawer-trigger",
+          ...props,
+        },
+      })}
+    </DrawerPrimitive.Trigger>
+  )
 }
 
 function DrawerPortal({
@@ -24,9 +39,23 @@ function DrawerPortal({
 }
 
 function DrawerClose({
+  render,
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Close>) {
-  return <DrawerPrimitive.Close data-slot="drawer-close" {...props} />
+}: React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Close> & {
+  render?: useRender.RenderProp<any>
+}) {
+  return (
+    <DrawerPrimitive.Close asChild>
+      {useRender({
+        defaultTagName: "button",
+        render,
+        props: {
+          "data-slot": "drawer-close",
+          ...props,
+        },
+      })}
+    </DrawerPrimitive.Close>
+  )
 }
 
 function DrawerOverlay({
