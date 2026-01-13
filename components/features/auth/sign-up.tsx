@@ -1,5 +1,11 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useTransition } from "react";
+import { Controller, type SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,19 +15,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import ImageUploadField from "@/components/ui/image-upload-field";
 import { Input } from "@/components/ui/input";
+import { useResetTheme } from '@/hooks/use-reset-theme';
 import { signUp } from "@/lib/auth-client";
-import { getCallbackURL } from "@/utils/shared";
 import { calculatePasswordStrength } from "@/utils/password-strength";
+import { getCallbackURL } from "@/utils/shared";
 import { LuExternalLink as ExternalLinkIcon, LuEye as EyeIcon, LuEyeOff as EyeOffIcon, LuKey as KeyIcon, LuLoader as Loader2, LuMail as MailIcon, LuUserPlus as UserPlus2Icon } from "react-icons/lu";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
-import { Controller, type SubmitHandler, useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { useResetTheme } from '@/hooks/use-reset-theme'
 
 type FormValues = {
   firstName: string;

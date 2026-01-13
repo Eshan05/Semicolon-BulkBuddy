@@ -1,27 +1,28 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   CardDescription,
   CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useState, useTransition, useEffect } from "react";
-import { LuExternalLink as ExternalLinkIcon, LuEye as EyeIcon, LuEyeOff as EyeOffIcon, LuKey as KeyIcon, LuLoader as Loader2, LuMail as MailIcon, LuUserPlus as UserPlus2Icon } from "react-icons/lu";
-import { authClient as client, signIn } from "@/lib/auth-client";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "sonner";
-import { getCallbackURL } from "@/utils/shared";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useResetTheme } from "@/hooks/use-reset-theme";
+import { authClient as client, signIn } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
+import { getCallbackURL } from "@/utils/shared";
+import { LuExternalLink as ExternalLinkIcon, LuEye as EyeIcon, LuEyeOff as EyeOffIcon, LuKey as KeyIcon, LuLoader as Loader2, LuMail as MailIcon } from "react-icons/lu";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -61,6 +62,40 @@ export default function SignIn() {
 
   const toggleVisibility = () => setIsVisible((prevState) => !prevState)
 
+  const handleEmailSignIn = async () => {
+    setLoadingAction("email");
+    startTransition(async () => {
+      try {
+        await signIn.email(
+          { email, password, rememberMe },
+          {
+            onSuccess(context) {
+              setLoadingAction(null);
+              toast.success("Successfully signed in. Redirecting...");
+              router.push(getCallbackURL(params));
+            },
+            onError(ctx) {
+              setLoadingAction(null);
+              toast.error(ctx?.error?.message || "Sign in failed");
+            },
+          },
+        );
+      } catch (err) {
+        setLoadingAction(null);
+        if (err instanceof Error) toast.error(err.message);
+      }
+    });
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast.error("Please enter both email and password");
+      return;
+    }
+    await handleEmailSignIn();
+  };
+
   return (
     <Card className="max-w-md bg-gradient-to-b from-neutral-100/50 to-white/30 dark:from-neutral-900/50 dark:to-neutral-900/30 backdrop-blur-lg border border-gray-200 dark:border-gray-700 shadow-lg">
       <CardHeader className=" text-center">
@@ -82,7 +117,7 @@ export default function SignIn() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 relative">
+        <form onSubmit={handleFormSubmit} className="grid gap-4 relative">
           <section className="flex items-center justify-between w-full flex-col gap-2">
             <div className="relative w-full">
               <Input
@@ -156,30 +191,6 @@ export default function SignIn() {
                 type="submit"
                 className="w-full flex items-center justify-center"
                 disabled={loadingAction !== null && loadingAction !== "email"}
-                onClick={async () => {
-                  setLoadingAction("email");
-                  startTransition(async () => {
-                    try {
-                      await signIn.email(
-                        { email, password, rememberMe },
-                        {
-                          onSuccess(context) {
-                            setLoadingAction(null);
-                            toast.success("Successfully signed in. Redirecting...");
-                            router.push(getCallbackURL(params));
-                          },
-                          onError(ctx) {
-                            setLoadingAction(null);
-                            toast.error(ctx?.error?.message || "Sign in failed");
-                          },
-                        },
-                      );
-                    } catch (err) {
-                      setLoadingAction(null);
-                      if (err instanceof Error) toast.error(err.message);
-                    }
-                  });
-                }}
               >
                 {loadingAction === "email" ? (
                   <Loader2 size={16} className="animate-spin w-full" />
@@ -288,7 +299,7 @@ export default function SignIn() {
               </Button>
             </div>
           </section>
-        </div>
+        </form>
 
       </CardContent>
       <CardFooter>
