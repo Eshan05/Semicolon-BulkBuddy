@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, AlertTriangle, CreditCard, Users, ShieldCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
 
 import { listPendingVerifications, updateVerificationStatus } from "@/lib/onboarding";
+import { VerificationDetails } from "@/components/features/admin/verification-details";
 
 export default async function AdminDashboard() {
   const pending = await listPendingVerifications().catch(() => []);
@@ -16,8 +18,12 @@ export default async function AdminDashboard() {
           <p className="text-muted-foreground">Platform-wide overview and management.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">System Logs</Button>
-          <Button>User Management</Button>
+          <Link href="/admin/logs">
+            <Button variant="outline">System Logs</Button>
+          </Link>
+          <Link href="/admin/users">
+            <Button>User Management</Button>
+          </Link>
         </div>
       </div>
 
@@ -88,11 +94,11 @@ export default async function AdminDashboard() {
                 { msg: "Pool #4492 failed to close automatically", severity: "medium", time: "1h ago" },
                 { msg: "Supplier 'MetalCo' license expiring soon", severity: "low", time: "5h ago" },
                 { msg: "User reported payment issue #Ticket-992", severity: "medium", time: "1d ago" },
-              ].map((alert, i) => (
-                <div key={i} className="flex items-center justify-between rounded-md border p-4">
+              ].map((alert) => (
+                <div key={alert.msg} className="flex items-center justify-between rounded-md border p-4">
                   <div className="flex items-center gap-4">
                     <AlertTriangle className={`h-5 w-5 ${alert.severity === "high" ? "text-destructive" :
-                        alert.severity === "medium" ? "text-orange-500" : "text-blue-500"
+                      alert.severity === "medium" ? "text-orange-500" : "text-blue-500"
                       }`} />
                     <div>
                       <p className="text-sm font-medium">{alert.msg}</p>
@@ -132,13 +138,14 @@ export default async function AdminDashboard() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    <VerificationDetails company={company} />
                     <form
                       action={async () => {
                         "use server";
                         await updateVerificationStatus({ companyId: company.id, status: "approved" });
                       }}
                     >
-                      <Button size="sm" variant="outline">Approve</Button>
+                      <Button type="submit" size="sm" variant="outline">Approve</Button>
                     </form>
                     <form
                       action={async () => {
@@ -146,7 +153,7 @@ export default async function AdminDashboard() {
                         await updateVerificationStatus({ companyId: company.id, status: "rejected" });
                       }}
                     >
-                      <Button size="sm" variant="ghost">Reject</Button>
+                      <Button type="submit" size="sm" variant="ghost">Reject</Button>
                     </form>
                   </div>
                 </div>
