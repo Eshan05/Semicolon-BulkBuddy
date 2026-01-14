@@ -17,3 +17,5 @@ export function useMobile() {
 
   return !!isMobile
 }
+
+export { useMobile as useIsMobile }

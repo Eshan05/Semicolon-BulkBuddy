@@ -186,7 +186,9 @@ export function BusinessLocationMap({
             title={business.name}
             icon={{
               url: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23059669" width="40" height="40"%3E%3Cpath d="M12 2C7.6 2 4 5.6 4 10c0 5.3 8 12 8 12s8-6.7 8-12c0-4.4-3.6-8-8-8zm0 11c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z"/%3E%3C/svg%3E',
-              scaledSize: { width: 40, height: 40 },
+              scaledSize: (typeof google !== 'undefined' && google.maps) 
+                ? new google.maps.Size(40, 40) 
+                : ({ width: 40, height: 40 } as any),
             }}
           >
             {selectedBusiness === business.id && (

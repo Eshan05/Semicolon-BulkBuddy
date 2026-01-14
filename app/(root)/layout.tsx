@@ -1,4 +1,3 @@
-import { AppSidebar } from '@/components/layout/user/app-sidebar';
 import { ModeToggle } from "@/components/common/mode-toggle";
 import { Providers } from '@/components/providers';
 import {
@@ -22,7 +21,6 @@ export default async function RLayout({
         disableTransitionOnChange
       >
         <SidebarProvider className="overflow-x-hidden">
-          <AppSidebar />
           <SidebarInset className="max-w-full group-has[[data-collapsible=icon]]/sidebar-wrapper:w-10 ">
             <section className="transition-[margin] ease-linear">
               <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 group-has-[[data-collapsible=icon]]/sidebar-wrapper:ml-0 group-has-[[data-collapsible=icon]]/sidebar-wrapper:w-full">
