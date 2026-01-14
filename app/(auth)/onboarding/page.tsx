@@ -20,7 +20,7 @@ export default async function OnboardingPage() {
   ]);
 
   return (
-    <div className="min-h-screen w-full px-4 py-10 sm:px-6 lg:px-10">
+    <div className="min-h-screen w-full px-4 py-20 sm:px-6 lg:px-10">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">Company onboarding</h1>
