@@ -132,8 +132,8 @@ export const auth = betterAuth({
     "http://192.168.1.*:3000",
     process.env.NEXT_PUBLIC_BETTER_AUTH_BASE,
     process.env.BETTER_AUTH_URL,
-    "https://pht.esn.qzz.io",
-    "https://pht-proto.vercel.app",
+    "https://bulkbuddy.esn.qzz.io",
+    "https://semicolon-bulkbuddy.vercel.app",
     baseURL,
   ].filter(Boolean) as string[],
   advanced: {
