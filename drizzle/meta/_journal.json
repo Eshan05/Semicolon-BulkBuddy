@@ -8,6 +8,27 @@
       "when": 1768397531215,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1768627000000,
+      "tag": "0001_pool_extras",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1768690000000,
+      "tag": "0002_company_geo",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1768695000000,
+      "tag": "0003_participant_spec_notes",
+      "breakpoints": true
     }
   ]
 }
