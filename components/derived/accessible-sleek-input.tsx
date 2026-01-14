@@ -1,8 +1,9 @@
 import { forwardRef, ElementType, HTMLAttributes, InputHTMLAttributes } from 'react';
 import { Input } from '@/components/ui/input'; // Assuming shadcn Input
-import { Button } from '@/components/ui/button'; // Assuming shadcn Button
+import { Button, buttonVariants } from '@/components/ui/button'; // Assuming shadcn Button
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'; // Assuming shadcn Popover
 import { FieldValues, FieldPath, ControllerRenderProps } from 'react-hook-form';
+import { cn } from '@/lib/utils';
 
 interface AdornedInputFieldProps<TFieldValues extends FieldValues, TName extends FieldPath<TFieldValues>> {
   /** The field object provided by the react-hook-form Controller. */
@@ -37,15 +38,14 @@ export const AdornedInputField = forwardRef<HTMLInputElement, AdornedInputFieldP
         />
 
         <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              className='absolute top-1/2 -translate-y-1/2 start-1'
-              aria-label={popoverLabel}
-              size={'md-icon'}
-              variant={'ghost'}
-            >
-              <Icon size={16} aria-hidden="true" className='text-muted-foreground' />
-            </Button>
+          <PopoverTrigger
+            className={cn(
+              buttonVariants({ variant: 'ghost', size: 'icon' }),
+              'absolute top-1/2 -translate-y-1/2 start-1'
+            )}
+            aria-label={popoverLabel}
+          >
+            <Icon size={16} aria-hidden="true" className='text-muted-foreground' />
           </PopoverTrigger>
           <PopoverContent side='right' className='px-3 py-1.5 text-xs text-balance w-max'>
             {popoverContent}

@@ -1,13 +1,14 @@
 "use client"
 
 import React, { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
 import { LuFingerprint as Fingerprint } from "react-icons/lu"
 import { toast } from "sonner"
 import { authClient as client } from "@/lib/auth-client"
 import { LuLoader as Loader2 } from "react-icons/lu"
+import { cn } from "@/lib/utils"
 
 export function AddPasskeyInline() {
   const [isOpen, setIsOpen] = useState(false)
@@ -32,11 +33,11 @@ export function AddPasskeyInline() {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size={'sm'} className="gap-2 mx-auto">
-          <Fingerprint size={15} />
-          Add New Passkey
-        </Button>
+      <DialogTrigger
+        className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-2 mx-auto")}
+      >
+        <Fingerprint size={15} />
+        Add New Passkey
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] w-11/12">
         <DialogHeader>

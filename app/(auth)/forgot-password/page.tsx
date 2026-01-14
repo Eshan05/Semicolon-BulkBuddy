@@ -70,16 +70,16 @@ export default function Component() {
             <Button variant="outline" className="w-full" onClick={() => setIsSubmitted(false)}>
               <ArrowLeft className="h-4 w-4" /> Back
             </Button>
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/sign-in">
+            <Link href="/sign-in" className="w-full">
+              <Button variant="outline" className="w-full">
                 <User2Icon className="h-4 w-4" /> Return to sign in
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/contact">
+              </Button>
+            </Link>
+            <Link href="/contact" className="w-full">
+              <Button variant="outline" className="w-full">
                 <MailIcon className="h-4 w-4" /> Contact us
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </CardFooter>
         </Card>
       </main>
@@ -135,16 +135,16 @@ export default function Component() {
           </form>
         </CardContent>
         <CardFooter className="flex flex-col items-center gap-2">
-          <Button asChild variant="outline" className="w-full">
-            <Link href="/sign-in">
+          <Link href="/sign-in" className="w-full">
+            <Button variant="outline" className="w-full">
               <ArrowLeft className="h-4 w-4" /> Back to sign in
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full">
-            <Link href="/contact">
+            </Button>
+          </Link>
+          <Link href="/contact" className="w-full">
+            <Button variant="outline" className="w-full">
               <MailIcon className="h-4 w-4" /> Contact us
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </CardFooter>
       </Card>
     </main>

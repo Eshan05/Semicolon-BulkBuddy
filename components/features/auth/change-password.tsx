@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/derived/password-input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Credenza,
   CredenzaTrigger,
@@ -17,11 +17,12 @@ import {
   CredenzaHeader,
   CredenzaDescription,
   CredenzaTitle,
-} from "@/components/ui/credenza";
+} from "../../ui/credenza";
 import { MdPassword } from "react-icons/md";
 import { LuLoader as Loader2, LuKey as KeyIcon, LuEye as EyeIcon, LuEyeOff as EyeOffIcon, LuLock as LockIcon } from "react-icons/lu";
 import { calculatePasswordStrength } from "@/utils/password-strength";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 type FormValues = {
   currentPassword: string;
@@ -80,11 +81,12 @@ export default function ChangePassword() {
 
   return (
     <Credenza open={open} onOpenChange={setOpen}>
-      <CredenzaTrigger asChild>
-        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          <MdPassword />
-          Change Password
-        </DropdownMenuItem>
+      <CredenzaTrigger
+        className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+        onClick={() => setOpen(true)}
+      >
+        <MdPassword />
+        <span>Change Password</span>
       </CredenzaTrigger>
 
       <CredenzaContent className="p-4">

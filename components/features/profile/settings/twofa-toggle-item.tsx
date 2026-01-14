@@ -31,11 +31,12 @@ export default function TwoFaToggleItem({ enabled }: { enabled?: boolean }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          {enabled ? <ShieldOff /> : <ShieldCheck />}
-          {enabled ? 'Disable 2FA' : 'Enable 2FA'}
-        </DropdownMenuItem>
+      <DialogTrigger
+        className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+        onClick={() => setOpen(true)}
+      >
+        {enabled ? <ShieldOff /> : <ShieldCheck />}
+        {enabled ? 'Disable 2FA' : 'Enable 2FA'}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] w-11/12">
         <DialogHeader>
@@ -59,15 +60,15 @@ export default function TwoFaToggleItem({ enabled }: { enabled?: boolean }) {
             if (twoFaPassword.length < 8 && !twoFactorVerifyURI) { toast.error('Password must be at least 8 characters'); return }
             setIsPendingTwoFa(true)
             if (enabled) {
-              await client.twoFactor.disable({ password: twoFaPassword, fetchOptions: { onError(ctx) { toast.error(ctx.error.message) }, onSuccess() { toast('2FA disabled successfully'); setOpen(false) } } })
+              await client.twoFactor.disable({ password: twoFaPassword, fetchOptions: { onError(ctx: any) { toast.error(ctx.error.message) }, onSuccess() { toast('2FA disabled successfully'); setOpen(false) } } })
               setIsPendingTwoFa(false)
               return
             }
             if (twoFactorVerifyURI) {
-              await client.twoFactor.verifyTotp({ code: twoFaPassword, fetchOptions: { onError(ctx) { setIsPendingTwoFa(false); setTwoFaPassword(''); toast.error(ctx.error.message) }, onSuccess() { toast('2FA enabled successfully'); setTwoFactorVerifyURI(''); setIsPendingTwoFa(false); setTwoFaPassword(''); setOpen(false) } } })
+              await client.twoFactor.verifyTotp({ code: twoFaPassword, fetchOptions: { onError(ctx: any) { setIsPendingTwoFa(false); setTwoFaPassword(''); toast.error(ctx.error.message) }, onSuccess() { toast('2FA enabled successfully'); setTwoFactorVerifyURI(''); setIsPendingTwoFa(false); setTwoFaPassword(''); setOpen(false) } } })
               return
             }
-            await client.twoFactor.enable({ password: twoFaPassword, fetchOptions: { onError(ctx) { toast.error(ctx.error.message) }, onSuccess(ctx) { setTwoFactorVerifyURI(ctx.data.totpURI) } } })
+            await client.twoFactor.enable({ password: twoFaPassword, fetchOptions: { onError(ctx: any) { toast.error(ctx.error.message) }, onSuccess(ctx: any) { setTwoFactorVerifyURI(ctx.data.totpURI) } } })
             setIsPendingTwoFa(false)
             setTwoFaPassword('')
           }}>{isPendingTwoFa ? <Loader2 className="animate-spin" /> : enabled ? 'Disable 2FA' : 'Enable 2FA'}</Button>

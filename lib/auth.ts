@@ -1,13 +1,33 @@
 import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import { prisma } from "@/src/server/data/prisma/client";
+import { twoFactor } from "better-auth/plugins";
+import { passkey } from "@better-auth/passkey";
 
 /**
  * Server-side Better Auth instance.
- *
- * This project already exposes Better Auth endpoints via `app/api/[...all]/route.ts`.
- * We keep auth composition here so the rest of the system (RBAC, auditing, API guards)
- * can depend on a single exported contract.
  */
 export const auth = betterAuth({
+  database: prismaAdapter(prisma, {
+    provider: "postgresql",
+  }),
+
+  emailPassword: {
+    enabled: true,
+  },
+
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    },
+  },
+
+  plugins: [
+    passkey(),
+    twoFactor(),
+  ],
+
   /**
    * `secret` is mandatory in production.
    * Generate once and store securely (do NOT commit).
@@ -19,9 +39,4 @@ export const auth = betterAuth({
    * Better Auth can infer from incoming requests, but `BASE_URL` helps in prod.
    */
   baseURL: process.env.AUTH_BASE_URL,
-
-  /**
-   * Minimal config to keep current auth UI working.
-   * Add providers/adapters as you harden the system (DB adapter, Google, etc.).
-   */
 });

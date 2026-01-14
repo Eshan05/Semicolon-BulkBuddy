@@ -40,31 +40,108 @@ enum NotificationType {
 }
 
 model User {
-  id          String   @id @default(uuid()) @db.Uuid
-  authSubject String   @unique // maps to Better Auth principal id / user id
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  deletedAt     DateTime?
 
-  role        UserRole
-  displayName String?
-  email       String?
-  phoneE164   String?
+  role          UserRole  @default(BUYER)
+  displayName   String?
+  phoneE164     String?
 
-  businessId  String?  @db.Uuid
-  business    Business? @relation(fields: [businessId], references: [id])
+  businessId    String?   @db.Uuid
+  business      Business? @relation(fields: [businessId], references: [id])
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
-
-  deviceTokens DeviceToken[]
-  poolMembers  PoolMember[]
-  orders       Order[]
-  auditLogs    AuditLog[]
+  deviceTokens  DeviceToken[]
+  poolMembers   PoolMember[]
+  orders        Order[]
+  auditLogs     AuditLog[]
   notifications Notification[]
+
+  sessions      Session[]
+  accounts      Account[]
+  passkeys      Passkey[]
+  twoFactors    TwoFactor[]
 
   @@index([businessId])
   @@index([role])
-  @@map("users")
+  @@map("user")
 }
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}
+
+model Passkey {
+  id           String    @id
+  name         String?
+  publicKey    String
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialID String
+  counter      Int
+  deviceType   String
+  backedUp     Boolean
+  transports   String?
+  createdAt    DateTime?
+
+  @@map("passkey")
+}
+
+model TwoFactor {
+  id          String @id
+  secret      String
+  backupCodes String
+  userId      String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("two_factor")
+}
+
 
 model Business {
   id        String   @id @default(uuid()) @db.Uuid
@@ -179,7 +256,7 @@ model PoolMember {
   poolId    String   @db.Uuid
   pool      Pool     @relation(fields: [poolId], references: [id])
 
-  userId    String   @db.Uuid
+  userId    String
   user      User     @relation(fields: [userId], references: [id])
 
   // Idempotency + pricing safety: member quantity is mutable via upsert semantics.
@@ -242,7 +319,7 @@ model Order {
   businessId  String      @db.Uuid
   business    Business    @relation(fields: [businessId], references: [id])
 
-  userId      String      @db.Uuid
+  userId      String
   user        User        @relation(fields: [userId], references: [id])
 
   poolId      String?     @db.Uuid
@@ -285,7 +362,7 @@ model OrderItem {
 
 model DeviceToken {
   id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @db.Uuid
+  userId    String
   user      User     @relation(fields: [userId], references: [id])
 
   token     String   @unique
@@ -302,7 +379,7 @@ model DeviceToken {
 
 model Notification {
   id        String           @id @default(uuid()) @db.Uuid
-  userId    String           @db.Uuid
+  userId    String
   user      User             @relation(fields: [userId], references: [id])
 
   type      NotificationType
@@ -322,7 +399,7 @@ model Notification {
 model AuditLog {
   id          String   @id @default(uuid()) @db.Uuid
   businessId  String?  @db.Uuid
-  userId      String?  @db.Uuid
+  userId      String?
 
   action      String
   resource    String

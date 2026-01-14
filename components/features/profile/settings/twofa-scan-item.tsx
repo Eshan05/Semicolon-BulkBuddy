@@ -29,10 +29,10 @@ export default function TwoFaScanItem() {
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          Scan QR Code
-        </DropdownMenuItem>
+      <DialogTrigger
+        className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+      >
+        <span>Scan QR Code</span>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] w-11/12">
         <DialogHeader>
@@ -49,7 +49,7 @@ export default function TwoFaScanItem() {
             <PasswordInput value={twoFaPassword} onChange={(e) => setTwoFaPassword(e.target.value)} placeholder="Enter Password" />
             <Button onClick={async () => {
               if (twoFaPassword.length < 8) { toast.error('Password must be at least 8 characters'); return }
-              await client.twoFactor.getTotpUri({ password: twoFaPassword }, { onSuccess(ctx) { setTwoFactorVerifyURI(ctx.data.totpURI) } })
+              await client.twoFactor.getTotpUri({ password: twoFaPassword }, { onSuccess(ctx: any) { setTwoFactorVerifyURI(ctx.data.totpURI) } })
               setTwoFaPassword('')
             }}>Show QR Code</Button>
           </div>

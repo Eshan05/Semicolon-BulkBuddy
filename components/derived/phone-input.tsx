@@ -3,7 +3,7 @@ import { LuCheck as CheckIcon, LuChevronsUpDown as ChevronsUpDown } from "react-
 import * as RPNInput from "react-phone-number-input";
 import flags from "react-phone-number-input/flags";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -18,7 +18,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 type PhoneInputProps = Omit<
@@ -89,45 +88,61 @@ const CountrySelect = ({
 }: CountrySelectProps) => {
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          className="flex gap-1 rounded-e-none rounded-s-lg border-r-0 px-3 focus:z-10"
-          disabled={disabled}
-        >
-          <FlagComponent
-            country={selectedCountry}
-            countryName={selectedCountry}
-          />
-          <ChevronsUpDown
-            className={cn(
-              "-mr-2 size-4 opacity-50",
-              disabled ? "hidden" : "opacity-100",
-            )}
-          />
-        </Button>
+      <PopoverTrigger
+        className={cn(
+          buttonVariants({ variant: 'outline', size: 'default' }),
+          "flex gap-1 rounded-e-none rounded-s-lg border-r-0 px-3 focus:z-10"
+        )}
+        disabled={disabled}
+      >
+        <FlagComponent
+          country={selectedCountry}
+          countryName={selectedCountry}
+        />
+        <ChevronsUpDown
+          className={cn(
+            "-mr-2 size-4 opacity-50",
+            disabled ? "hidden" : "opacity-100",
+          )}
+        />
       </PopoverTrigger>
       <PopoverContent className="w-72 p-0">
         <Command>
           <CommandInput placeholder="Search country..." />
           <CommandList>
-            <ScrollArea className="h-72">
+            <div className="h-72 overflow-y-auto overflow-x-hidden custom-scrollbar">
               <CommandEmpty>No country found.</CommandEmpty>
               <CommandGroup>
-                {countryList.map(({ value, label }) =>
-                  value ? (
-                    <CountrySelectOption
-                      key={value}
-                      country={value}
-                      countryName={label}
-                      selectedCountry={selectedCountry}
-                      onChange={onChange}
-                    />
-                  ) : null,
-                )}
+                {countryList
+                  .filter((x) => x.value)
+                  .map((option) => (
+                    <CommandItem
+                      className="gap-2"
+                      key={option.value}
+                      onSelect={() => onChange(option.value!)}
+                    >
+                      <FlagComponent
+                        country={option.value}
+                        countryName={option.label}
+                      />
+                      <span className="flex-1 text-sm">{option.label}</span>
+                      {option.value && (
+                        <span className="text-muted-foreground text-sm">
+                          {`+${RPNInput.getCountryCallingCode(option.value)}`}
+                        </span>
+                      )}
+                      <CheckIcon
+                        className={cn(
+                          "ml-auto size-4",
+                          option.value === selectedCountry
+                            ? "opacity-100"
+                            : "opacity-0",
+                        )}
+                      />
+                    </CommandItem>
+                  ))}
               </CommandGroup>
-            </ScrollArea>
+            </div>
           </CommandList>
         </Command>
       </PopoverContent>

@@ -12,7 +12,7 @@ import {
   CredenzaBody,
   CredenzaFooter,
   CredenzaClose,
-} from "@/components/ui/credenza"
+} from "../ui/credenza"
 
 interface BaseProps {
   children: React.ReactNode
@@ -95,10 +95,8 @@ const WDContent = ({
         <CredenzaFooter>
           {footer}
           {showClose && (
-            <CredenzaClose asChild>
-              <button className="px-4 py-2 rounded-md bg-neutral-900 text-neutral-50 hover:bg-neutral-800 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200">
-                Close
-              </button>
+            <CredenzaClose className="px-4 py-2 rounded-md bg-neutral-900 text-neutral-50 hover:bg-neutral-800 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200">
+              Close
             </CredenzaClose>
           )}
         </CredenzaFooter>
