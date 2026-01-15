@@ -35,6 +35,18 @@ export async function listAllCompanies() {
   });
 }
 
+export async function getSupportContact() {
+  const authedUser = await getAuthedUser();
+  if (!authedUser) return null;
+
+  const adminUser = await db.query.user.findFirst({
+    where: eq(user.role, "admin"),
+    columns: { id: true, name: true, email: true },
+  });
+
+  return adminUser ?? null;
+}
+
 export async function setUserBan(formData: FormData): Promise<void> {
   const authedUser = await requireAdmin();
 

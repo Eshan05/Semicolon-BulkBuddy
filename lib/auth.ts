@@ -143,3 +143,15 @@ export const auth = betterAuth({
     },
   },
 });
+
+async function getAllDeviceSessions(headers: Headers): Promise<unknown[]> {
+  return await auth.api.listDeviceSessions({
+    headers,
+  });
+}
+
+async function getAllUserOrganizations(headers: Headers): Promise<unknown[]> {
+  return await auth.api.listOrganizations({
+    headers,
+  });
+}
