@@ -2,11 +2,19 @@ import { notFound } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CompanyLocationMap } from "@/components/features/profile/company-location-map";
 import { getCompanyByUserId } from "@/lib/profiles";
 
-export default async function CompanyProfilePage({ params }: { params: { userId: string } }) {
-  const company = await getCompanyByUserId(params.userId);
-  if (!company) notFound();
+export default async function CompanyProfilePage({
+  params,
+}: {
+  params: Promise<{ userId: string }>;
+}) {
+  const { userId } = await params;
+  const data = await getCompanyByUserId(userId);
+  if (!data) notFound();
+
+  const { company, insights } = data;
 
   const profile = company.companyType === "buyer" ? company.buyerProfile : company.supplierProfile;
 
@@ -18,8 +26,36 @@ export default async function CompanyProfilePage({ params }: { params: { userId:
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="capitalize">{company.companyType}</Badge>
           <Badge variant={company.status === "approved" ? "default" : "outline"} className="capitalize">{company.status}</Badge>
+          <Badge variant="outline">Trust score: {insights.trustScore}/100</Badge>
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Trust & activity</CardTitle>
+          <CardDescription>Lightweight signals from platform activity (MVP).</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-6">
+          <Info label="Completed pools" value={`${insights.completedPools}`} />
+          <Info label="Soft commits" value={`${insights.softCommits}`} />
+          <Info label="Pool closers" value={`${insights.poolClosers}`} />
+          <Info label="Accepted offers" value={`${insights.supplierAcceptedOffers}`} />
+          <Info label="Join streak" value={`${insights.poolJoinStreak}`} />
+          <Info label="Referrals" value={`${insights.referralsEarned}`} />
+          <div className="md:col-span-6 rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Badges</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {insights.badges.length ? (
+                insights.badges.map((b) => (
+                  <Badge key={b} variant="secondary">{b}</Badge>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No badges yet.</p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -30,6 +66,15 @@ export default async function CompanyProfilePage({ params }: { params: { userId:
           <Info label="Location" value={[company.city, company.state, company.country].filter(Boolean).join(", ")} />
           <Info label="Website" value={company.website || "—"} />
           <Info label="Contact" value={`${company.contactName} • ${company.contactEmail}`} />
+
+          <div className="md:col-span-3">
+            <CompanyLocationMap
+              lat={company.lat ?? null}
+              lng={company.lng ?? null}
+              label={company.companyName}
+              locationLabel={[company.city, company.state, company.country].filter(Boolean).join(", ")}
+            />
+          </div>
         </CardContent>
       </Card>
 
