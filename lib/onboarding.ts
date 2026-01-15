@@ -17,6 +17,7 @@ import {
   verificationDocument,
 } from "@/lib/db/schema";
 import { logAudit } from "@/lib/audit";
+import { geocodeApproxLocation } from "@/lib/geocoding";
 
 const onboardingSchema = z.object({
   companyType: z.enum(["buyer", "supplier"]),
@@ -266,6 +267,12 @@ export async function submitOnboarding(payload: OnboardingPayload) {
 
   const data = onboardingSchema.parse(payload);
 
+  const coords = await geocodeApproxLocation({
+    city: data.city,
+    state: data.state || null,
+    country: data.country,
+  });
+
   const existingCompany = await db.query.companyProfile.findFirst({
     where: eq(companyProfile.userId, authedUser.id),
   });
@@ -300,6 +307,8 @@ export async function submitOnboarding(payload: OnboardingPayload) {
           state: data.state || null,
           country: data.country,
           postalCode: data.postalCode || null,
+          lat: coords?.lat ?? null,
+          lng: coords?.lng ?? null,
           contactName: data.contactName,
           contactRole: data.contactRole || null,
           contactEmail: data.contactEmail,
@@ -329,6 +338,8 @@ export async function submitOnboarding(payload: OnboardingPayload) {
         state: data.state || null,
         country: data.country,
         postalCode: data.postalCode || null,
+        lat: coords?.lat ?? null,
+        lng: coords?.lng ?? null,
         contactName: data.contactName,
         contactRole: data.contactRole || null,
         contactEmail: data.contactEmail,

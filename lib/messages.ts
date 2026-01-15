@@ -24,23 +24,29 @@ async function getAuthedUser() {
 async function findOrCreateDirectThread(params: { userA: string; userB: string }) {
   const [a, b] = [params.userA, params.userB].sort();
 
-  const existing = await db
+  // Find candidate threads where both users are participants.
+  // For MVP we treat all threads as direct (2 participants), so we can keep the query simple and robust.
+  const candidates = await db
     .select({ threadId: messageThreadParticipant.threadId })
     .from(messageThreadParticipant)
     .where(inArray(messageThreadParticipant.userId, [a, b]))
     .groupBy(messageThreadParticipant.threadId)
-    .having(sql`
-      COUNT(DISTINCT ${messageThreadParticipant.userId}) = 2
-      AND (
-        SELECT COUNT(*)
-        FROM message_thread_participant mtp2
-        WHERE mtp2.thread_id = ${messageThreadParticipant.threadId}
-      ) = 2
-    `)
-    .limit(1);
+    .having(sql`COUNT(DISTINCT ${messageThreadParticipant.userId}) = 2`)
+    .limit(20);
 
-  const existingThreadId = existing[0]?.threadId;
-  if (existingThreadId) return existingThreadId;
+  if (candidates.length) {
+    // Prefer the most recently created candidate by thread createdAt.
+    const candidateIds = candidates.map((c) => c.threadId);
+    const existing = await db
+      .select({ id: messageThread.id })
+      .from(messageThread)
+      .where(inArray(messageThread.id, candidateIds))
+      .orderBy(desc(messageThread.createdAt))
+      .limit(1);
+
+    const existingThreadId = existing[0]?.id;
+    if (existingThreadId) return existingThreadId;
+  }
 
   const threadId = randomUUID();
   await db.transaction(async (tx) => {
