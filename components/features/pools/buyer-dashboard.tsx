@@ -1,16 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
+import { useActionState, useEffect, useMemo, useRef } from "react";
 import { ArrowUpRight, Box, DollarSign, Package, TrendingDown, Users } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Credenza, CredenzaBody, CredenzaContent, CredenzaFooter, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "@/components/ui/credenza";
 import { Separator } from "@/components/ui/separator";
-import { createPool, joinPool } from "@/lib/pools";
+import { createPoolAction, joinPoolAction } from "@/lib/pools";
 import { cn } from "@/lib/utils";
 
 export type BuyerPool = {
@@ -35,10 +37,14 @@ type DashboardProps = {
     totalSavingsCents: number;
     activePools: number;
     lockedPools: number;
+    referralsEarned?: number;
+    referralCreditsPct?: number;
   } | null;
   myPools: BuyerPool[];
   availablePools: BuyerPool[];
   activity: { id: string; message: string; createdAt: Date | number | string }[];
+  scope: "all" | "country" | "state" | "city";
+  locationLabel: string | null;
 };
 
 const formatCurrency = (cents: number, currency: string) => {
@@ -46,8 +52,52 @@ const formatCurrency = (cents: number, currency: string) => {
   return `${currency} ${value}`;
 };
 
-export function BuyerDashboardClient({ stats, myPools, availablePools, activity }: DashboardProps) {
+export function BuyerDashboardClient({ stats, myPools, availablePools, activity, scope, locationLabel }: DashboardProps) {
   const totalPools = useMemo(() => myPools.length, [myPools.length]);
+
+  const createFormRef = useRef<HTMLFormElement | null>(null);
+
+  const fillCreatePoolSample = () => {
+    const form = createFormRef.current;
+    if (!form) return;
+
+    const setValue = (name: string, value: string | number) => {
+      const el = form.elements.namedItem(name);
+      if (!el) return;
+      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+        el.value = String(value);
+      }
+    };
+
+    const now = new Date();
+    setValue("title", `Steel billets – ${now.toLocaleString("en", { month: "short" })} buy`);
+    setValue("material", "Steel");
+    setValue("specification", "Grade S275 – 6m lengths");
+    setValue("unit", "kg");
+    setValue("targetQuantity", 1000);
+    setValue("initialQuantity", 200);
+    setValue("minFillPercent", 60);
+    setValue("retailPrice", 3.5);
+    setValue("currency", "USD");
+    setValue("locationCity", "Lagos");
+    setValue("locationState", "Lagos");
+    setValue("locationCountry", "Nigeria");
+  };
+
+  const [createResult, createAction, createPending] = useActionState(createPoolAction, null);
+  const [joinResult, joinAction, joinPending] = useActionState(joinPoolAction, null);
+
+  useEffect(() => {
+    if (!createResult) return;
+    if (createResult.ok) toast.success("Pool created");
+    else toast.error(createResult.error);
+  }, [createResult]);
+
+  useEffect(() => {
+    if (!joinResult) return;
+    if (joinResult.ok) toast.success("Joined pool");
+    else toast.error(joinResult.error);
+  }, [joinResult]);
 
   return (
     <div className="flex flex-col gap-8 p-6 md:p-8">
@@ -63,40 +113,131 @@ export function BuyerDashboardClient({ stats, myPools, availablePools, activity 
               <CredenzaTitle>Create a new pool</CredenzaTitle>
             </CredenzaHeader>
             <CredenzaBody className="max-h-[70vh] overflow-y-auto">
-              <form action={createPool} className="grid gap-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Input name="title" placeholder="Pool title" required />
-                  <Input name="material" placeholder="Material (Steel, HDPE)" required />
-                  <Input name="specification" placeholder="Specification (grade, size)" />
-                  <Input name="unit" placeholder="Unit (kg, ton)" defaultValue="kg" />
-                  <Input name="targetQuantity" type="number" placeholder="Target quantity" required />
-                  <Input name="initialQuantity" type="number" placeholder="Your quantity" />
-                  <Input name="minFillPercent" type="number" placeholder="Minimum fill %" defaultValue={60} />
-                  <Input name="retailPrice" type="number" step="0.01" placeholder="Retail price per unit" required />
-                  <Input name="currency" placeholder="Currency" defaultValue="USD" />
+              <form ref={createFormRef} action={createAction} className="grid gap-4">
+                {process.env.NODE_ENV === "development" ? (
+                  <div className="flex justify-end">
+                    <Button type="button" variant="outline" onClick={fillCreatePoolSample}>
+                      Dev: quick fill
+                    </Button>
+                  </div>
+                ) : null}
+                <div className="rounded-xl border p-4">
+                  <p className="text-sm font-semibold">Basics</p>
+                  <p className="text-xs text-muted-foreground">What are you pooling, and what counts as “the same spec”?</p>
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="pool-title">Pool title</Label>
+                      <Input id="pool-title" name="title" placeholder="e.g. Steel billets – Q1 purchase" required />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="pool-material">Material</Label>
+                      <Input id="pool-material" name="material" placeholder="e.g. Steel, HDPE, Copper" required />
+                    </div>
+                    <div className="grid gap-2 md:col-span-2">
+                      <Label htmlFor="pool-spec">Specification (optional)</Label>
+                      <Input id="pool-spec" name="specification" placeholder="e.g. grade, size, tolerance, packaging" />
+                      <p className="text-xs text-muted-foreground">Tip: keep this precise to avoid spec mismatches.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border p-4">
+                  <p className="text-sm font-semibold">Quantity & pricing</p>
+                  <p className="text-xs text-muted-foreground">Set the target and the current retail baseline.</p>
+                  <div className="mt-4 grid gap-4 md:grid-cols-3">
+                    <div className="grid gap-2">
+                      <Label htmlFor="pool-unit">Unit</Label>
+                      <Input id="pool-unit" name="unit" placeholder="kg" defaultValue="kg" />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="pool-target">Target quantity</Label>
+                      <Input id="pool-target" name="targetQuantity" type="number" min={1} step={1} placeholder="e.g. 1000" required />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="pool-initial">Your quantity (optional)</Label>
+                      <Input id="pool-initial" name="initialQuantity" type="number" min={0} step={1} placeholder="e.g. 200" />
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="pool-minfill">Minimum fill %</Label>
+                      <Input id="pool-minfill" name="minFillPercent" type="number" min={1} max={100} step={1} placeholder="60" defaultValue={60} />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="pool-retail">Retail price / unit</Label>
+                      <Input id="pool-retail" name="retailPrice" type="number" min={0} step="0.01" placeholder="e.g. 3.50" required />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="pool-currency">Currency</Label>
+                      <Input id="pool-currency" name="currency" placeholder="USD" defaultValue="USD" />
+                    </div>
+                  </div>
                 </div>
 
                 <Separator />
 
-                <div className="grid gap-4 md:grid-cols-3">
-                  <Input name="tier1Percent" type="number" defaultValue={60} placeholder="Tier 1 %" />
-                  <Input name="tier1Price" type="number" step="0.01" placeholder="Tier 1 price" />
-                  <Input name="tier2Percent" type="number" defaultValue={80} placeholder="Tier 2 %" />
-                  <Input name="tier2Price" type="number" step="0.01" placeholder="Tier 2 price" />
-                  <Input name="tier3Percent" type="number" defaultValue={100} placeholder="Tier 3 %" />
-                  <Input name="tier3Price" type="number" step="0.01" placeholder="Tier 3 price" />
+                <div className="rounded-xl border p-4">
+                  <p className="text-sm font-semibold">Discount tiers</p>
+                  <p className="text-xs text-muted-foreground">As the pool fills, the unit price drops.</p>
+                  <div className="mt-4 grid gap-4 md:grid-cols-3">
+                    <div className="grid gap-2">
+                      <Label htmlFor="tier1Percent">Tier 1 threshold (%)</Label>
+                      <Input id="tier1Percent" name="tier1Percent" type="number" min={1} max={200} step={1} defaultValue={60} />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="tier1Price">Tier 1 price / unit</Label>
+                      <Input id="tier1Price" name="tier1Price" type="number" min={0} step="0.01" placeholder="auto" />
+                    </div>
+                    <div className="hidden md:block" />
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="tier2Percent">Tier 2 threshold (%)</Label>
+                      <Input id="tier2Percent" name="tier2Percent" type="number" min={1} max={200} step={1} defaultValue={80} />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="tier2Price">Tier 2 price / unit</Label>
+                      <Input id="tier2Price" name="tier2Price" type="number" min={0} step="0.01" placeholder="auto" />
+                    </div>
+                    <div className="hidden md:block" />
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="tier3Percent">Tier 3 threshold (%)</Label>
+                      <Input id="tier3Percent" name="tier3Percent" type="number" min={1} max={200} step={1} defaultValue={100} />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="tier3Price">Tier 3 price / unit</Label>
+                      <Input id="tier3Price" name="tier3Price" type="number" min={0} step="0.01" placeholder="auto" />
+                    </div>
+                    <p className="text-xs text-muted-foreground md:col-span-3">
+                      Leave tier prices empty to use the suggested defaults.
+                    </p>
+                  </div>
                 </div>
 
                 <Separator />
 
-                <div className="grid gap-4 md:grid-cols-3">
-                  <Input name="locationCity" placeholder="City" />
-                  <Input name="locationState" placeholder="State" />
-                  <Input name="locationCountry" placeholder="Country" />
+                <div className="rounded-xl border p-4">
+                  <p className="text-sm font-semibold">Location (optional)</p>
+                  <p className="text-xs text-muted-foreground">Used for matching nearby SMEs and suppliers.</p>
+                  <div className="mt-4 grid gap-4 md:grid-cols-3">
+                    <div className="grid gap-2">
+                      <Label htmlFor="locationCity">City</Label>
+                      <Input id="locationCity" name="locationCity" placeholder="City" />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="locationState">State/Region</Label>
+                      <Input id="locationState" name="locationState" placeholder="State" />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="locationCountry">Country</Label>
+                      <Input id="locationCountry" name="locationCountry" placeholder="Country" />
+                    </div>
+                  </div>
                 </div>
 
                 <CredenzaFooter className="justify-end">
-                  <Button type="submit">Create pool</Button>
+                  <Button type="submit" disabled={createPending}>
+                    {createPending ? "Creating…" : "Create pool"}
+                  </Button>
                 </CredenzaFooter>
               </form>
             </CredenzaBody>
@@ -115,6 +256,11 @@ export function BuyerDashboardClient({ stats, myPools, availablePools, activity 
               {stats ? formatCurrency(stats.totalSavingsCents, "USD") : "—"}
             </div>
             <p className="text-xs text-muted-foreground">Based on current pool prices</p>
+            {stats?.referralCreditsPct ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Referral bonus: {stats.referralCreditsPct}% off next order (MVP)
+              </p>
+            ) : null}
           </CardContent>
         </Card>
         <Card>
@@ -235,8 +381,41 @@ export function BuyerDashboardClient({ stats, myPools, availablePools, activity 
 
       <Card>
         <CardHeader>
-          <CardTitle>Available pools</CardTitle>
-          <CardDescription>Join nearby pools to unlock better pricing.</CardDescription>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle>Available pools</CardTitle>
+              <CardDescription>Join nearby pools to unlock better pricing.</CardDescription>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                href="/dashboard?scope=country"
+                className={cn(buttonVariants({ size: "sm", variant: scope === "country" ? "default" : "outline" }))}
+              >
+                Nearby
+              </Link>
+              <Link
+                href="/dashboard?scope=state"
+                className={cn(buttonVariants({ size: "sm", variant: scope === "state" ? "default" : "outline" }))}
+              >
+                Same state
+              </Link>
+              <Link
+                href="/dashboard?scope=city"
+                className={cn(buttonVariants({ size: "sm", variant: scope === "city" ? "default" : "outline" }))}
+              >
+                Same city
+              </Link>
+              <Link
+                href="/dashboard?scope=all"
+                className={cn(buttonVariants({ size: "sm", variant: scope === "all" ? "default" : "outline" }))}
+              >
+                All
+              </Link>
+            </div>
+          </div>
+          {locationLabel ? (
+            <p className="text-xs text-muted-foreground">Matching against {locationLabel}</p>
+          ) : null}
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {availablePools.length === 0 && (
@@ -273,10 +452,19 @@ export function BuyerDashboardClient({ stats, myPools, availablePools, activity 
                   {pool.progress.toFixed(0)}% filled
                 </p>
               </div>
-              <form action={joinPool} className="flex gap-2">
+              <form action={joinAction} className="flex gap-2">
                 <input type="hidden" name="poolId" value={pool.id} />
-                <Input name="quantity" type="number" min={1} placeholder={`Qty (${pool.unit})`} required />
-                <Button type="submit" variant="secondary">Join</Button>
+                <Input
+                  name="quantity"
+                  type="number"
+                  min={1}
+                  placeholder={`Qty (${pool.unit})`}
+                  required
+                  defaultValue={process.env.NODE_ENV === "development" ? 100 : undefined}
+                />
+                <Button type="submit" variant="secondary" disabled={joinPending}>
+                  {joinPending ? "Joining…" : "Join"}
+                </Button>
               </form>
             </div>
           ))}
