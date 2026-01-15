@@ -3,6 +3,7 @@ import {
   sqliteTable,
   text,
   integer,
+  real,
   index,
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
@@ -232,6 +233,8 @@ export const companyProfile = sqliteTable(
     state: text("state"),
     country: text("country").notNull(),
     postalCode: text("postal_code"),
+    lat: real("lat"),
+    lng: real("lng"),
     contactName: text("contact_name").notNull(),
     contactRole: text("contact_role"),
     contactEmail: text("contact_email").notNull(),
@@ -396,6 +399,9 @@ export const poolParticipant = sqliteTable(
       .references(() => user.id, { onDelete: "cascade" }),
     participantType: text("participant_type").default("buyer").notNull(),
     quantity: integer("quantity").notNull(),
+    isAnonymous: integer("is_anonymous", { mode: "boolean" }).default(false).notNull(),
+    displayName: text("display_name"),
+    specNotes: text("spec_notes"),
     commitStatus: text("commit_status").default("none").notNull(),
     committedAt: integer("committed_at", { mode: "timestamp_ms" }),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
@@ -450,6 +456,31 @@ export const poolMessage = sqliteTable(
   (table) => [
     index("pool_message_pool_idx").on(table.poolId),
     index("pool_message_sender_idx").on(table.senderId),
+  ],
+);
+
+export const poolVibeCheck = sqliteTable(
+  "pool_vibe_check",
+  {
+    id: text("id").primaryKey(),
+    poolId: text("pool_id")
+      .notNull()
+      .references(() => pool.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    matchedSpecs: integer("matched_specs", { mode: "boolean" }).notNull(),
+    chatHelpful: integer("chat_helpful", { mode: "boolean" }).notNull(),
+    wouldPoolAgain: integer("would_pool_again", { mode: "boolean" }).notNull(),
+    comment: text("comment"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [
+    index("pool_vibe_check_pool_idx").on(table.poolId),
+    index("pool_vibe_check_user_idx").on(table.userId),
+    uniqueIndex("pool_vibe_check_unique").on(table.poolId, table.userId),
   ],
 );
 
@@ -589,6 +620,7 @@ export const userRelations = relations(user, ({ many }) => ({
   companyProfiles: many(companyProfile),
   poolsCreated: many(pool),
   poolParticipants: many(poolParticipant),
+  poolVibeChecks: many(poolVibeCheck),
   threadParticipants: many(messageThreadParticipant),
   directMessagesSent: many(directMessage),
   notifications: many(notification),
@@ -705,6 +737,7 @@ export const poolRelations = relations(pool, ({ one, many }) => ({
   participants: many(poolParticipant),
   activities: many(poolActivity),
   messages: many(poolMessage),
+  vibeChecks: many(poolVibeCheck),
   supplierBids: many(poolSupplierBid),
 }));
 
@@ -740,6 +773,17 @@ export const poolMessageRelations = relations(poolMessage, ({ one }) => ({
   }),
   sender: one(user, {
     fields: [poolMessage.senderId],
+    references: [user.id],
+  }),
+}));
+
+export const poolVibeCheckRelations = relations(poolVibeCheck, ({ one }) => ({
+  pool: one(pool, {
+    fields: [poolVibeCheck.poolId],
+    references: [pool.id],
+  }),
+  user: one(user, {
+    fields: [poolVibeCheck.userId],
     references: [user.id],
   }),
 }));
