@@ -6,11 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getThreadDetails, markThreadRead, sendDirectMessage } from "@/lib/messages";
 
-export default async function ThreadPage({ params }: { params: { threadId: string } }) {
-  const data = await getThreadDetails(params.threadId);
+export default async function ThreadPage({
+  params,
+}: {
+  params: Promise<{ threadId: string }>;
+}) {
+  const { threadId } = await params;
+  const data = await getThreadDetails(threadId);
   if (!data) notFound();
 
-  await markThreadRead(params.threadId);
+  await markThreadRead(threadId);
 
   return (
     <div className="flex flex-col gap-6 p-6 md:p-8">
