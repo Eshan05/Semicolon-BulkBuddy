@@ -15,7 +15,7 @@ export async function GET(
 
   const { poolId } = await context.params;
 
-  const pool = await getPoolLiveState(poolId);
+  const pool = await getPoolLiveState(poolId, session.user.id);
   if (!pool) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
