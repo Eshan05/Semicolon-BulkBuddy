@@ -1,18 +1,30 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowUpRight, Copy, MessageCircle, RefreshCw } from "lucide-react";
+import { ArrowUpRight, MessageCircle, RefreshCw } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { PoolParticipantsMap, type PoolMapMarker } from "@/components/features/pools/pool-participants-map";
+import { PoolShareDialog } from "@/components/features/pools/pool-share-dialog";
 import { startDirectThread } from "@/lib/messages";
-import { joinPool, PoolDetails, sendPoolMessage, submitSupplierBid } from "@/lib/pools";
+import {
+  acceptSupplierBidAction,
+  joinPoolAction,
+  PoolDetails,
+  sendPoolMessageAction,
+  submitPoolVibeCheckAction,
+  submitSupplierBidAction,
+} from "@/lib/pools";
 import { cn } from "@/lib/utils";
 
 type PoolState = PoolDetails;
@@ -25,14 +37,55 @@ const formatCurrency = (cents: number, currency: string) => {
 export function PoolRoom({
   initialPool,
   me,
+  supportContact,
 }: {
   initialPool: PoolState;
   me: { id: string; role: string | null };
+  supportContact?: { id: string; name: string | null; email: string | null } | null;
 }) {
   const [pool, setPool] = useState<PoolState>(initialPool);
   const [polling, setPolling] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const lastMilestoneRef = useRef<string | null>(null);
+
+  const searchParams = useSearchParams();
+  const refFromUrl = (searchParams?.get("ref") || "").trim();
+
+  const [joinResult, joinAction, joinPending] = useActionState(joinPoolAction, null);
+  const [messageResult, messageAction, messagePending] = useActionState(sendPoolMessageAction, null);
+  const [bidResult, bidAction, bidPending] = useActionState(submitSupplierBidAction, null);
+  const [acceptResult, acceptAction, acceptPending] = useActionState(acceptSupplierBidAction, null);
+  const [vibeResult, vibeAction, vibePending] = useActionState(submitPoolVibeCheckAction, null);
+
+  useEffect(() => {
+    if (!joinResult) return;
+    if (joinResult.ok) toast.success("Joined pool");
+    else toast.error(joinResult.error);
+  }, [joinResult]);
+
+  useEffect(() => {
+    if (!messageResult) return;
+    if (messageResult.ok) toast.success("Message sent");
+    else toast.error(messageResult.error);
+  }, [messageResult]);
+
+  useEffect(() => {
+    if (!bidResult) return;
+    if (bidResult.ok) toast.success("Offer submitted");
+    else toast.error(bidResult.error);
+  }, [bidResult]);
+
+  useEffect(() => {
+    if (!acceptResult) return;
+    if (acceptResult.ok) toast.success("Offer accepted");
+    else toast.error(acceptResult.error);
+  }, [acceptResult]);
+
+  useEffect(() => {
+    if (!vibeResult) return;
+    if (vibeResult.ok) toast.success("Vibe check submitted");
+    else toast.error(vibeResult.error);
+  }, [vibeResult]);
 
   const progress = useMemo(() => Number(pool.progress ?? 0), [pool.progress]);
   const location = useMemo(
@@ -75,15 +128,6 @@ export function PoolRoom({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [polling, pool.id]);
 
-  const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      toast.success("Pool link copied");
-    } catch {
-      toast.error("Couldn't copy link");
-    }
-  };
-
   const sortedMessages = useMemo(() => {
     const msgs = Array.isArray(pool.messages) ? [...pool.messages] : [];
     // current query comes back desc; show asc
@@ -98,8 +142,12 @@ export function PoolRoom({
         userId: p.userId,
         quantity: p.quantity,
         participantType: p.participantType,
+        isAnonymous: Boolean(p.isAnonymous),
+        displayName: p.displayName ?? null,
+        specNotes: p.specNotes ?? null,
         commitStatus: p.commitStatus,
         user: p.user,
+        company: p.company ?? null,
       }))
       .sort((a: any, b: any) => (b.quantity || 0) - (a.quantity || 0));
   }, [pool.participants]);
@@ -115,8 +163,65 @@ export function PoolRoom({
       notes: b.notes,
       status: b.status,
       supplier: b.supplier,
+      supplierCompany: b.supplierCompany ?? null,
     }));
   }, [pool.supplierBids]);
+
+  const bestOpenBidId = useMemo(() => {
+    const open = bids.filter((b: any) => b.status === "open" && typeof b.offeredPriceCents === "number");
+    if (!open.length) return null;
+    open.sort((a: any, b: any) => (a.offeredPriceCents ?? 0) - (b.offeredPriceCents ?? 0));
+    return open[0]?.id ?? null;
+  }, [bids]);
+
+  const mapMarkers = useMemo(() => {
+    const markers: PoolMapMarker[] = [];
+
+    for (const p of participants) {
+      const company = p.company;
+      if (company?.lat == null || company?.lng == null) continue;
+
+      const canReveal =
+        !p.isAnonymous ||
+        pool.status === "locked" ||
+        p.userId === me.id ||
+        me.role === "admin" ||
+        pool.creatorId === me.id;
+
+      const title = p.isAnonymous && !canReveal
+        ? (p.displayName || "Anonymous")
+        : (company.companyName || p.user?.name || p.user?.email || p.displayName || "Buyer");
+
+      const subtitle = [company.city, company.state, company.country].filter(Boolean).join(", ") || null;
+
+      markers.push({
+        id: `buyer-${p.id}`,
+        type: "buyer",
+        lat: company.lat,
+        lng: company.lng,
+        title,
+        subtitle,
+      });
+    }
+
+    for (const b of bids) {
+      const company = b.supplierCompany;
+      if (company?.lat == null || company?.lng == null) continue;
+      const title = company.companyName || b.supplier?.name || b.supplier?.email || "Supplier";
+      const subtitle = [company.city, company.state, company.country].filter(Boolean).join(", ") || null;
+
+      markers.push({
+        id: `supplier-${b.id}`,
+        type: "supplier",
+        lat: company.lat,
+        lng: company.lng,
+        title,
+        subtitle,
+      });
+    }
+
+    return markers;
+  }, [bids, me.id, me.role, participants, pool.creatorId, pool.status]);
 
   const buyers = participants.filter((p: any) => p.participantType === "buyer");
 
@@ -143,10 +248,13 @@ export function PoolRoom({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button type="button" variant="outline" onClick={copyLink}>
-            <Copy className="h-4 w-4" />
-            Share
-          </Button>
+          <PoolShareDialog poolId={pool.id} title={pool.title} referralId={me.id} />
+          {supportContact?.id ? (
+            <form action={startDirectThread}>
+              <input type="hidden" name="otherUserId" value={supportContact.id} />
+              <Button type="submit" variant="outline">Contact support</Button>
+            </form>
+          ) : null}
           <Button type="button" variant="outline" onClick={() => setPolling((p) => !p)}>
             <RefreshCw className={cn("h-4 w-4", polling ? "animate-spin" : "")} />
             {polling ? "Live" : "Paused"}
@@ -192,9 +300,33 @@ export function PoolRoom({
             <CardDescription>Contribute your required quantity (with optional soft commitment).</CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={joinPool} className="flex flex-col gap-3">
+            <form action={joinAction} className="flex flex-col gap-3">
               <input type="hidden" name="poolId" value={pool.id} />
-              <Input name="quantity" type="number" min={1} placeholder={`Quantity (${pool.unit})`} required />
+              {refFromUrl ? <input type="hidden" name="ref" value={refFromUrl} /> : null}
+              <Input
+                name="quantity"
+                type="number"
+                min={1}
+                placeholder={`Quantity (${pool.unit})`}
+                required
+                defaultValue={process.env.NODE_ENV === "development" ? 100 : undefined}
+              />
+
+              <Input
+                name="specNotes"
+                placeholder="Spec notes (optional)"
+                defaultValue={process.env.NODE_ENV === "development" ? "OK with equivalent grade" : undefined}
+              />
+
+              <label className="flex items-center gap-2 text-sm">
+                <input name="anonymousJoin" value="true" type="checkbox" className="h-4 w-4" />
+                Join anonymously (revealed when pool locks)
+              </label>
+              <Input
+                name="displayName"
+                placeholder="Anonymous display name (optional)"
+                defaultValue={process.env.NODE_ENV === "development" ? "AnonCo" : undefined}
+              />
 
               <label className="flex items-center gap-2 text-sm">
                 <input name="commit" value="true" type="checkbox" className="h-4 w-4" />
@@ -206,7 +338,9 @@ export function PoolRoom({
                 If I oversubscribe, split the excess into a new pool
               </label>
 
-              <Button type="submit">Join pool</Button>
+              <Button type="submit" disabled={joinPending}>
+                {joinPending ? "Joining…" : "Join pool"}
+              </Button>
             </form>
           </CardContent>
         </Card>
@@ -216,8 +350,10 @@ export function PoolRoom({
         <TabsList className="w-full" variant="line">
           <TabsTrigger value="chat" className="flex-1">Chat</TabsTrigger>
           <TabsTrigger value="buyers" className="flex-1">Buyers</TabsTrigger>
+          <TabsTrigger value="map" className="flex-1">Map</TabsTrigger>
           <TabsTrigger value="offers" className="flex-1">Supplier offers</TabsTrigger>
           <TabsTrigger value="activity" className="flex-1">Activity</TabsTrigger>
+          <TabsTrigger value="vibe" className="flex-1">Vibe check</TabsTrigger>
         </TabsList>
 
         <TabsContent value="chat" className="mt-4">
@@ -245,7 +381,7 @@ export function PoolRoom({
                 })}
               </div>
 
-              <form action={sendPoolMessage} className="grid gap-2">
+              <form action={messageAction} className="grid gap-2">
                 <input type="hidden" name="poolId" value={pool.id} />
                 <div className="grid gap-2 sm:grid-cols-2">
                   <label className="flex items-center gap-2 text-sm">
@@ -255,7 +391,9 @@ export function PoolRoom({
                   <Input name="displayName" placeholder="Anonymous display name (optional)" />
                 </div>
                 <Input name="message" placeholder="Type a message" required />
-                <Button type="submit" variant="secondary">Send message</Button>
+                <Button type="submit" variant="secondary" disabled={messagePending}>
+                  {messagePending ? "Sending…" : "Send message"}
+                </Button>
               </form>
             </CardContent>
           </Card>
@@ -275,11 +413,46 @@ export function PoolRoom({
               {buyers.map((p: any) => (
                 <div key={p.id} className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{p.user?.name || p.user?.email || "Buyer"}</p>
+                    {(() => {
+                      const canReveal =
+                        !p.isAnonymous ||
+                        pool.status === "locked" ||
+                        p.userId === me.id ||
+                        me.role === "admin" ||
+                        pool.creatorId === me.id;
+
+                      const label = p.isAnonymous && !canReveal
+                        ? (p.displayName || "Anonymous")
+                        : (p.user?.name || p.user?.email || p.displayName || "Buyer");
+
+                      return (
+                        <p className="truncate text-sm font-medium">
+                          {label}
+                          {p.isAnonymous && !canReveal ? " (anonymous)" : ""}
+                        </p>
+                      );
+                    })()}
                     <p className="text-xs text-muted-foreground">
                       {p.quantity}{pool.unit}
                       {p.commitStatus === "soft" ? " • soft commit" : ""}
                     </p>
+                    {(() => {
+                      if (!p.specNotes) return null;
+                      const canReveal =
+                        !p.isAnonymous ||
+                        pool.status === "locked" ||
+                        p.userId === me.id ||
+                        me.role === "admin" ||
+                        pool.creatorId === me.id;
+
+                      if (!canReveal) return null;
+
+                      return (
+                        <p className="text-xs text-muted-foreground truncate">
+                          Spec notes: {p.specNotes}
+                        </p>
+                      );
+                    })()}
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -314,6 +487,10 @@ export function PoolRoom({
           </Card>
         </TabsContent>
 
+        <TabsContent value="map" className="mt-4">
+          <PoolParticipantsMap markers={mapMarkers} />
+        </TabsContent>
+
         <TabsContent value="offers" className="mt-4">
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
@@ -326,48 +503,101 @@ export function PoolRoom({
                   <p className="text-sm text-muted-foreground">No supplier offers yet.</p>
                 )}
 
-                {bids.map((b: any) => {
-                  const max = b.maxQuantity ? `${b.maxQuantity}${pool.unit}` : "—";
-                  const potential = b.maxQuantity
-                    ? `${Math.min(((pool.currentQuantity + b.maxQuantity) / pool.targetQuantity) * 100, 999).toFixed(0)}%`
-                    : null;
+                {bids.length > 0 && (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Supplier</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Max</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {bids
+                        .slice()
+                        .sort((a: any, b: any) => {
+                          const as = a.status === "accepted" || a.status === "accepted_partial" ? 0 : 1;
+                          const bs = b.status === "accepted" || b.status === "accepted_partial" ? 0 : 1;
+                          if (as !== bs) return as - bs;
+                          return (a.offeredPriceCents ?? 0) - (b.offeredPriceCents ?? 0);
+                        })
+                        .map((b: any) => {
+                          const max = b.maxQuantity ? `${b.maxQuantity}${pool.unit}` : "—";
+                          const isOwner = me.role === "admin" || pool.creatorId === me.id;
+                          const statusLabel = b.status === "accepted_partial" ? "accepted (partial)" : b.status;
+                          const isBest = b.status === "open" && bestOpenBidId && b.id === bestOpenBidId;
+                          const deltaCents = typeof b.offeredPriceCents === "number"
+                            ? (pool.currentPriceCents - b.offeredPriceCents)
+                            : null;
 
-                  return (
-                    <div key={b.id} className="rounded-lg border p-3">
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">
-                            {b.supplier?.name || b.supplier?.email || "Supplier"}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {formatCurrency(b.offeredPriceCents, b.currency)} / {pool.unit} • max {max}
-                            {potential ? ` • could cover up to ${potential}` : ""}
-                          </p>
-                          {b.notes && <p className="mt-2 text-sm whitespace-pre-wrap">{b.notes}</p>}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="capitalize">{b.status}</Badge>
-                          {b.supplierId && b.supplierId !== me.id && (
-                            <form action={startDirectThread}>
-                              <input type="hidden" name="otherUserId" value={b.supplierId} />
-                              <Button type="submit" size="sm" variant="outline">
-                                Message
-                              </Button>
-                            </form>
-                          )}
-                          {b.supplierId && (
-                            <Link
-                              href={`/profiles/${b.supplierId}`}
-                              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                          return (
+                            <TableRow
+                              key={b.id}
+                              className={cn(
+                                b.status === "accepted" || b.status === "accepted_partial" ? "bg-emerald-500/5" : "",
+                              )}
                             >
-                              View profile
-                            </Link>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                              <TableCell className="min-w-48">
+                                <div className="min-w-0">
+                                  <p className="truncate text-sm font-medium">
+                                    {b.supplier?.name || b.supplier?.email || "Supplier"}
+                                  </p>
+                                  {b.notes ? (
+                                    <p className="text-xs text-muted-foreground truncate max-w-[36ch]">{b.notes}</p>
+                                  ) : null}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <p className="text-sm font-medium">{formatCurrency(b.offeredPriceCents, b.currency)} / {pool.unit}</p>
+                                {deltaCents != null && deltaCents > 0 ? (
+                                  <p className="text-xs text-muted-foreground">Save {formatCurrency(deltaCents, b.currency)} / {pool.unit}</p>
+                                ) : null}
+                              </TableCell>
+                              <TableCell>{max}</TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant={b.status === "accepted" || b.status === "accepted_partial" ? "default" : "outline"}
+                                  className="capitalize"
+                                >
+                                  {statusLabel}
+                                </Badge>
+                                {isBest ? <Badge variant="secondary" className="ml-2">Best</Badge> : null}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex flex-wrap justify-end gap-2">
+                                  {isOwner && b.status !== "accepted" && b.status !== "accepted_partial" && (
+                                    <form action={acceptAction}>
+                                      <input type="hidden" name="poolId" value={pool.id} />
+                                      <input type="hidden" name="bidId" value={b.id} />
+                                      <Button type="submit" size="sm" disabled={acceptPending}>
+                                        {acceptPending ? "Accepting…" : "Accept"}
+                                      </Button>
+                                    </form>
+                                  )}
+                                  {b.supplierId && b.supplierId !== me.id && (
+                                    <form action={startDirectThread}>
+                                      <input type="hidden" name="otherUserId" value={b.supplierId} />
+                                      <Button type="submit" size="sm" variant="outline">Message</Button>
+                                    </form>
+                                  )}
+                                  {b.supplierId && (
+                                    <Link
+                                      href={`/profiles/${b.supplierId}`}
+                                      className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                                    >
+                                      Profile
+                                    </Link>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
 
@@ -378,7 +608,7 @@ export function PoolRoom({
               </CardHeader>
               <CardContent className="space-y-3">
                 {(me.role === "supplier" || me.role === "admin") ? (
-                  <form action={submitSupplierBid} className="grid gap-3">
+                  <form action={bidAction} className="grid gap-3">
                     <input type="hidden" name="poolId" value={pool.id} />
                     <div className="grid gap-3 md:grid-cols-2">
                       <Input name="offeredPrice" type="number" step="0.01" placeholder="Offered price per unit" required />
@@ -386,7 +616,9 @@ export function PoolRoom({
                       <Input name="maxQuantity" type="number" placeholder={`Max quantity you can fulfill (${pool.unit})`} />
                       <Input name="notes" placeholder="Notes (lead time, terms, etc)" />
                     </div>
-                    <Button type="submit">Submit offer</Button>
+                    <Button type="submit" disabled={bidPending}>
+                      {bidPending ? "Submitting…" : "Submit offer"}
+                    </Button>
                   </form>
                 ) : (
                   <p className="text-sm text-muted-foreground">Only supplier accounts can submit offers.</p>
@@ -419,6 +651,86 @@ export function PoolRoom({
                   {a.message}
                 </div>
               ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="vibe" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Post-pool vibe check</CardTitle>
+              <CardDescription>
+                Quick feedback after the pool locks. This improves trust signals on profiles.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3 md:grid-cols-4">
+                <Info label="Responses" value={`${pool.vibeSummary?.total ?? 0}`} />
+                <Info label="Specs matched" value={`${pool.vibeSummary?.matchedSpecsPct ?? 0}%`} />
+                <Info label="Chat helpful" value={`${pool.vibeSummary?.chatHelpfulPct ?? 0}%`} />
+                <Info label="Would pool again" value={`${pool.vibeSummary?.wouldPoolAgainPct ?? 0}%`} />
+              </div>
+
+              {pool.status !== "locked" ? (
+                <p className="text-sm text-muted-foreground">Vibe check opens once the pool locks.</p>
+              ) : pool.myVibeCheckSubmitted ? (
+                <p className="text-sm text-muted-foreground">Thanks — you already submitted your vibe check.</p>
+              ) : (
+                <form action={vibeAction} className="grid gap-4">
+                  <input type="hidden" name="poolId" value={pool.id} />
+
+                  <fieldset className="grid gap-2 rounded-lg border p-3">
+                    <legend className="text-sm font-medium">Specs matched?</legend>
+                    <div className="flex flex-wrap gap-3 text-sm">
+                      <label className="flex items-center gap-2">
+                        <input type="radio" name="matchedSpecs" value="true" required className="h-4 w-4" />
+                        Yes
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input type="radio" name="matchedSpecs" value="false" required className="h-4 w-4" />
+                        No
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="grid gap-2 rounded-lg border p-3">
+                    <legend className="text-sm font-medium">Was the chat helpful?</legend>
+                    <div className="flex flex-wrap gap-3 text-sm">
+                      <label className="flex items-center gap-2">
+                        <input type="radio" name="chatHelpful" value="true" required className="h-4 w-4" />
+                        Yes
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input type="radio" name="chatHelpful" value="false" required className="h-4 w-4" />
+                        No
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="grid gap-2 rounded-lg border p-3">
+                    <legend className="text-sm font-medium">Would you pool again?</legend>
+                    <div className="flex flex-wrap gap-3 text-sm">
+                      <label className="flex items-center gap-2">
+                        <input type="radio" name="wouldPoolAgain" value="true" required className="h-4 w-4" />
+                        Yes
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input type="radio" name="wouldPoolAgain" value="false" required className="h-4 w-4" />
+                        No
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium" htmlFor="vibe-comment">Optional note</label>
+                    <Textarea id="vibe-comment" name="comment" placeholder="Any context that would help future pools?" />
+                  </div>
+
+                  <Button type="submit" variant="secondary" disabled={vibePending}>
+                    {vibePending ? "Submitting…" : "Submit vibe check"}
+                  </Button>
+                </form>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
