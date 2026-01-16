@@ -31,8 +31,7 @@ export default function InboxItem() {
 
   return (
     <DropdownMenuItem
-      onSelect={(e) => {
-        e.preventDefault();
+      onSelect={() => {
         router.push("/inbox");
       }}
     >
